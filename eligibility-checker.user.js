@@ -547,7 +547,7 @@
     backgroundBlendMode: 'overlay',
     // This needs to come from current stylesheet somehow
     // it's ../images... relative to forums.css but forums.css isn't anywhere
-    maskImage: `url('static/styles/${window.document.styleSheetSets[0]}/images/balloon-unread.png')`,
+    maskImage: `url('static/styles/${$('link[rel="stylesheet"][title]').attr('title')}/images/balloon-unread.png')`,
     maskPosition: '50%',
     maskRepeat: 'no-repeat',
   };
