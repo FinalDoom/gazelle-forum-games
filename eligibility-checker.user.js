@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GGn Forum Games Checker
 // @namespace    https://gazellegames.net/
-// @version      1.1.1
+// @version      1.1.2
 // @description  Tracks forum games participation eligibility and marks thread read indicators accordingly.
 // @author       FinalDoom
 // @match        https://gazellegames.net/inbox.php*
@@ -34,7 +34,9 @@
             1,
           )} seconds for more API calls.`,
         );
-        await new Promise((resolve) => setTimeout(resolve, TEN_SECOND_DELAY_MILLIS - (nowTimeBeforeWait - tenSecondTime)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, TEN_SECOND_DELAY_MILLIS - (nowTimeBeforeWait - tenSecondTime)),
+        );
       } else {
         break;
       }
@@ -541,13 +543,20 @@
   //
   // #region Forum games forum logic
   //
-  const rowAStyle = {backgroundColor: 'var(--rowa)'};
-  const rowBStyle = {backgroundColor: 'var(--rowb)'};
+  const svgCircleMask =
+    "data:image/svg+xml,%3csvg height='100' width='100'%3e%3ccircle cx='50' cy='50' r='40' fill='black' /%3e%3c/svg%3e";
+  const styleName = $('link[rel="stylesheet"][title]').attr('title');
+  const isInternalCss = () => styleName !== 'External CSS'; // FIX External mask isn't working. Figure out how to make it work.
+  const maskImage = isInternalCss()
+    ? `url(static/styles/${styleName}/images/balloon-unread.png)`
+    : `url(${svgCircleMask})`;
+  const rowAStyle = {backgroundColor: $('.rowa').first().css('background-color')}; // isInternalCss() ?'var(--rowa)':''};
+  const rowBStyle = {backgroundColor: $('.rowb').first().css('background-color')}; // isInternalCss()?'var(--rowb)':''};
   const sharedReadIconStyle = {
     backgroundBlendMode: 'overlay',
     // This needs to come from current stylesheet somehow
     // it's ../images... relative to forums.css but forums.css isn't anywhere
-    maskImage: `url('static/styles/${$('link[rel="stylesheet"][title]').attr('title')}/images/balloon-unread.png')`,
+    maskImage: maskImage,
     maskPosition: '50%',
     maskRepeat: 'no-repeat',
   };
