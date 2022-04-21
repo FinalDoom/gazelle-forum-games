@@ -27,20 +27,20 @@
       const nowTimeBeforeWait = new Date().getTime();
       if (
         (parseInt(window.localStorage.forumGamesApiRequests) || 0) >= 5 &&
-        nowTimeBeforeWait - tenSecondTime < tenSecondDelay
+        nowTimeBeforeWait - tenSecondTime < TEN_SECOND_DELAY_MILLIS
       ) {
         log(
-          `Waiting ${((tenSecondDelay - (nowTimeBeforeWait - tenSecondTime)) / 1000).toFixed(
+          `Waiting ${((TEN_SECOND_DELAY_MILLIS - (nowTimeBeforeWait - tenSecondTime)) / 1000).toFixed(
             1,
           )} seconds for more API calls.`,
         );
-        await new Promise((resolve) => setTimeout(resolve, tenSecondDelay - (nowTimeBeforeWait - tenSecondTime)));
+        await new Promise((resolve) => setTimeout(resolve, TEN_SECOND_DELAY_MILLIS - (nowTimeBeforeWait - tenSecondTime)));
       } else {
         break;
       }
     }
     const nowTime = new Date().getTime();
-    if (nowTime - (parseInt(window.localStorage.forumGamesTenSecondTime) || 0) > tenSecondDelay) {
+    if (nowTime - (parseInt(window.localStorage.forumGamesTenSecondTime) || 0) > TEN_SECOND_DELAY_MILLIS) {
       window.localStorage.forumGamesTenSecondTime = nowTime;
       window.localStorage.forumGamesApiRequests = 0;
     }
@@ -162,7 +162,7 @@
   // #region State information and constants
   //
 
-  const tenSecondDelay = 11000; // 5 api calls per tenSecondDelay milliseconds (plus a bit for wiggle room)
+  const TEN_SECOND_DELAY_MILLIS = 11000; // 5 api calls per tenSecondDelay milliseconds (plus a bit for wiggle room)
 
   const API_KEY = getApiKey();
   const USER_ID = await getUserId();
