@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GGn Forum Games Checker
 // @namespace    https://gazellegames.net/
-// @version      2.0.0
+// @version      2.0.2
 // @description  Tracks forum games participation eligibility and marks thread read indicators accordingly.
 // @author       FinalDoom
 // @match        https://gazellegames.net/forums.php?*action=viewforum&forumid=55*
@@ -241,6 +241,7 @@
       const lastPostByUser = $(`.forum_post a.username[href$='id=${userId}']:visible`).last().closest('table');
       const firstPostOnPage = $('.forum_post');
       const post = lastPostByUser.length ? lastPostByUser : firstPostOnPage;
+      const thread = this;
       const otherPosts = [
         ...(post === firstPostOnPage // Include the first post (not belonging to this user)
           ? [this.getPostId(firstPostOnPage)]
@@ -248,7 +249,7 @@
         ...post // Get the post IDs after this one
           .nextAll('table:not(.sticky_post)')
           .map(function () {
-            return this.getPostId($(this));
+            return thread.getPostId($(this));
           })
           .toArray(),
       ];
@@ -275,14 +276,15 @@
   };
   ForumThread.prototype.updateGameStates = function () {
     const state = this.state();
-    if (state && !state.canPost) {
-      LOG.debug('Updating states');
+    const {canPost: previousCanPost} = state;
+    if (state) {
+      LOG.debug('Updating states from', state);
       const {lastPostTime, otherPostIds} = this.getRecentPostInfo();
       const nextPostTime = new Date(lastPostTime + state.postTimeLimit * 3600000);
       state.nextPostTime = nextPostTime;
       state.canPost = otherPostIds.length >= state.postCountLimit || nextPostTime < new Date();
       LOG.debug('New state', state);
-      STORAGE.setGameState(this.threadId, state);
+      if (previousCanPost != state.canPost) STORAGE.setGameState(this.threadId, state);
     }
   };
   ForumThread.prototype.changeMonitoring = async function (monitoringOn) {
@@ -326,9 +328,8 @@
   };
   ForumThread.prototype.init = async function () {
     if (this.isForumGame()) {
-      const monitored = this.isMonitored();
       this.addMonitoringLinks();
-      if (monitored && this.isLastPage()) this.updateGameStates();
+      if (this.isMonitored() && this.isLastPage()) this.updateGameStates();
       LOG.log('Current thread state:', () => this.state());
     }
     return this;
@@ -421,7 +422,7 @@
       window.addEventListener(
         'storage',
         ({key}) =>
-          key.startsWith('forumGamesState') &&
+          key.startsWith(KEY_GAME_STATE_PREFIX) &&
           STYLE.setPostState(STORAGE.keyToThreadId(key), STORAGE.getGameState(key)),
       );
     },
