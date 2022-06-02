@@ -7,9 +7,9 @@ Install URL: https://github.com/FinalDoom/gazelle-forum-games/releases/latest/do
 The eligibility display currently supports the following stylesheets:
 
 - Game Room  
-  [Styling on Game Room](https://github.com/FinalDoom/gazelle-forum-games/blob/master/screenshots/game_room.png)
+  ![Styling on Game Room](/screenshots/game_room.png?raw=true "Styling on Game Room")
 - Other (including external)  
-  [Default styling on Elephantish](<https://github.com/FinalDoom/gazelle-forum-games/blob/master/screenshots/default(elephantish).jpg?raw=true>)
+  ![Default styling on Elephantish](/screenshots/default(elephantish).jpg?raw=true "Default styling on Elephantish")
 
 If you use another stylesheet and want to see specific support
 
