@@ -101,3 +101,8 @@ typings/
 
 # TernJS port file
 .tern-port
+
+# Rollup-generated files
+dist/bundle.user.js
+dist/bundle.user.js.map
+dist/dev.user.js
