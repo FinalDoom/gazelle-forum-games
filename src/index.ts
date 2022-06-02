@@ -19,7 +19,7 @@ declare global {
   const STORE = new Store();
   await STORE.init();
   const API = new Api(STORE, LOG);
-  if (new URLSearchParams(window.location.search).has('viewthread') && ForumThread.isForumGame) {
+  if (new URLSearchParams(window.location.search).get('action') === 'viewthread' && ForumThread.isForumGame) {
     const THREAD = new ForumThread(
       API,
       LOG,
