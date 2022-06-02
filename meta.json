@@ -1,0 +1,10 @@
+{
+  "name": "GGn Forum Games Checker",
+  "namespace": "https://gazellegames.net/",
+  "require": ["https://code.jquery.com/jquery-3.6.0.js"],
+  "match": [
+    "https://gazellegames.net/forums.php?*action=viewforum&forumid=55*",
+    "https://gazellegames.net/forums.php?*action=viewthread&threadid=*"
+  ],
+  "grant": ["GM.getValue", "GM.setValue"]
+}
