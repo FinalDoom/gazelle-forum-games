@@ -1,0 +1,29 @@
+@mixin state-balloon($color) {
+  background-blend-mode: overlay;
+  background-color: $color;
+  mask-image: url('static/styles/game_room/images/balloon-unread.png');
+  mask-position: 50%;
+  mask-repeat: no-repeat;
+}
+
+.forum-games-checker-game_room__row {
+  &.rowa {
+    background-color: var(--rowa);
+  }
+  &.rowb {
+    background-color: var(--rowb);
+  }
+
+  &--unread-ineligible td:first-of-type {
+    @include state-balloon(brown); // "red" colors. tomato more rounded, coral lighter, brown has less attention
+  }
+  &--unread-eligible td:first-of-type {
+    @include state-balloon(olive); // "green" colors. olive or olivedrab fit the theme really well
+  }
+  &--read-ineligible td:first-of-type {
+    @include state-balloon(rgba(255, 0, 0, 0.3));
+  }
+  &--read-eligible td:first-of-type {
+    @include state-balloon(rgba(0, 255, 0, 0.2));
+  }
+}

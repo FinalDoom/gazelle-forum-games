@@ -1,0 +1,27 @@
+@mixin status-circle($color) {
+  span.last_topic::before {
+    content: '';
+    border-radius: 7.5px;
+    background-color: $color;
+    float: left;
+    margin-right: 5px;
+    margin-top: 3px;
+    height: 15px;
+    width: 15px;
+  }
+}
+
+.forum-games-checker-default__row {
+  &--unread-ineligible {
+    @include status-circle(red); // "red" colors. tomato more rounded, coral lighter, brown has less attention
+  }
+  &--unread-eligible {
+    @include status-circle(green); // "green" colors. olive or olivedrab fit the theme really well
+  }
+  &--read-ineligible {
+    @include status-circle(red);
+  }
+  &--read-eligible {
+    @include status-circle(green);
+  }
+}

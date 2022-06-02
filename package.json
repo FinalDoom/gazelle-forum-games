@@ -1,0 +1,62 @@
+{
+  "name": "gazelle-forum-games-eligibility-checker",
+  "version": "3.1.0",
+  "description": "Tracks forum games participation eligibility and marks thread read indicators accordingly.",
+  "keywords": [
+    "gazelle",
+    "games",
+    "forum",
+    "userscript",
+    "greasemonkey",
+    "tampermonkey",
+    "rollup",
+    "typescript"
+  ],
+  "homepage": "https://github.com/FinalDoom/gazelle-forum-games",
+  "repository": {
+    "type": "git",
+    "url": "github:FinalDoom/gazelle-forum-games"
+  },
+  "bugs": {
+    "url": "https://github.com/FinalDoom/gazelle-forum-games/issues"
+  },
+  "author": "FinalDoom",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx rollup --config rollup.config.js",
+    "watch": "npx rollup --config rollup.config.js --watch",
+    "serve": "node -r esm server.js",
+    "start": "node -r esm server.js",
+    "build:release": "npx rollup --config rollup.config.js --sourcemap 0 --file dist/release-$npm_package_version.user.js",
+    "build:release:win32": "npx rollup --config rollup.config.js --sourcemap 0 --file dist\\release-%npm_package_version%.user.js",
+    "version": "npm run build:release && git add dist/release-$npm_package_version.user.js",
+    "prepublishOnly": "npm run build:release && git add dist/release-$npm_package_version.user.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.10",
+    "@babel/core": "^7.18.2",
+    "@babel/plugin-proposal-class-properties": "^7.17.12",
+    "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@rollup/plugin-typescript": "^8.3.2",
+    "@types/greasemonkey": "^4.0.2",
+    "@types/jquery": "^3.5.14",
+    "@types/react": "^18.0.9",
+    "colorette": "^2.0.16",
+    "esm": "^3.2.25",
+    "jquery": "^3.6.0",
+    "node-sass": "^7.0.1",
+    "rollup": "^2.75.3",
+    "rollup-plugin-scss": "^3",
+    "rollup-plugin-userscript-metablock": "^0.3.1",
+    "serve": "^13.0.2",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.2"
+  },
+  "config": {
+    "port": "8124"
+  }
+}
