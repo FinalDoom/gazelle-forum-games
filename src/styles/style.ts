@@ -1,30 +1,80 @@
 import './default.scss';
 
+type RowState = 'read-eligible' | 'read-ineligible' | 'unread-eligible' | 'unread-ineligible';
+
+/**
+ * Class that handles importing stylesheet and applying it to the forum index to indicate eligibility
+ */
 export interface Style {
+  /**
+   * Method that can be overridden to apply additional styling to the created indicator icon, such as
+   * titles or other information.
+   *
+   * @param icon jQuery referencing the element that eligibility styling is being applied to
+   * @param canPost true if user is eligible to post in this thread, false otherwise.
+   */
+  modifyIcon(icon: JQuery, canPost: boolean): void;
+  /**
+   * Method that handles assigning participation state to individual rows.
+   *
+   * @param threadId site ID for the thread to be styled. Used in matches to find the correct row.
+   * @param canPost true if user is eligible to post in this thread, false otherwise.
+   */
   setPostState(threadId: number, canPost: boolean): void;
-  styleRow(row: JQuery, stateName: string): void;
+  /**
+   * Method that handles styling individual rows to indicate game participation eligibility.
+   *
+   * @param row jQuery object that references the current row (<tr>) to style
+   * @param stateName text indicating game row state, used to set class/styling from imported scss
+   */
+  styleRow(row: JQuery, stateName: RowState): void;
 }
 
+/**
+ * Used to build a style matching the current forum game index stylesheet.
+ */
 export class StyleFactory {
+  /**
+   * Should not be accessed outside this class. Use {@link registerStyle} to alter.
+   */
   static registeredStyles: Array<[() => boolean, () => Style]> = [
     [() => true, () => new BaseStyle('forum-games-checker-default__row')],
   ];
+
+  /**
+   * @returns An instance of a {@link Style} that matches the current index stylesheet.
+   */
   static build() {
     return StyleFactory.registeredStyles.find(([testFunction, _]) => testFunction())[1]();
   }
 
+  /**
+   * Register a new {@link Style} to be returned by {@link build}.
+   *
+   * @param testFunction Function that returns true if the caller {@link Style} can be applied to the current index stylesheet.
+   * @param createFunction Function that instantiates the caller {@link Style}.
+   */
   static registerStyle(testFunction: () => boolean, createFunction: () => Style) {
     this.registeredStyles.unshift([testFunction, createFunction]);
   }
 }
 
+/**
+ * Base style that can be overridden for specific stylesheet logic. Has the default implementation of all methods.
+ */
 export class BaseStyle implements Style {
   #rowClassName;
+
+  /**
+   * Instantiation of Style that can be called to style forum index page.
+   *
+   * @param rowClassName base class identifier used in matching .scss file. Must be unique on the site and other style types. Suggested format follows BEM, such as 'forum-games-checker-STYLE_NAME__row'
+   */
   constructor(rowClassName) {
     this.#rowClassName = rowClassName;
   }
 
-  modifyIcon(icon: JQuery<HTMLElement>, canPost: boolean) {
+  modifyIcon(icon: JQuery, canPost: boolean) {
     console.log(icon, icon.find('.last_topic'));
     icon
       .next()
@@ -60,7 +110,7 @@ export class BaseStyle implements Style {
     }
   }
 
-  styleRow(row: JQuery, stateName: string) {
+  styleRow(row: JQuery, stateName: RowState) {
     row.addClass([this.#rowClassName, this.#rowClassName + '--' + stateName]);
   }
 }

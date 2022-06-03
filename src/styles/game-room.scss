@@ -1,3 +1,4 @@
+// Styling common to all the different states
 @mixin state-balloon($color) {
   background-blend-mode: overlay;
   background-color: $color;
@@ -6,7 +7,9 @@
   mask-repeat: no-repeat;
 }
 
+// Base class name must match the one passed to the BaseStyle constructor
 .forum-games-checker-game_room__row {
+  // Extra styling to fix some oddities on the page when we apply the masks
   &.rowa {
     background-color: var(--rowa);
   }
@@ -14,6 +17,8 @@
     background-color: var(--rowb);
   }
 
+  // Individual state names are statically defined unless methods are overridden.
+  // The first part of these rules, &--status, should remain the same.
   &--unread-ineligible td:first-of-type {
     @include state-balloon(brown); // "red" colors. tomato more rounded, coral lighter, brown has less attention
   }
