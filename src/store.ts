@@ -33,7 +33,7 @@ export default class Store implements Storable {
     this.#apiTenSecondTime = this.#initLocalStorage('apiTenSecondTime', 0);
     this.#gameStates = this.#allGameStates();
 
-    window.addEventListener('storage', this.#storageListener);
+    window.addEventListener('storage', this.#storageListener.bind(this));
   }
 
   async #initGM(name: keyof typeof GM_KEYS, defaultValue?: any) {
@@ -141,7 +141,6 @@ export default class Store implements Storable {
 
   setGameState(threadId: number, state: GameState) {
     const key = KEY_GAME_STATE_PREFIX + threadId;
-    const oldValue = this.#gameStates.get(threadId);
     this.#gameStates.set(threadId, state);
     window.localStorage.setItem(key, JSON.stringify(state));
   }
@@ -156,7 +155,7 @@ export default class Store implements Storable {
     return this.#gameStates;
   }
   isGameMonitored(threadId: number) {
-    return threadId in this.#gameStates;
+    return this.#gameStates.has(threadId);
   }
   removeMonitoring(threadId: number) {
     if (threadId in this.#gameStates) {
