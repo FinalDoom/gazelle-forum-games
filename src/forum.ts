@@ -43,11 +43,10 @@ export default class Forum {
   }
 
   async recheckEligibility() {
-    for (const [key, {nextPostTime}] of Object.entries(this.#store.gameStates)) {
+    for (const [threadId, {nextPostTime}] of this.#store.gameStates.entries()) {
       await new Promise<void>(
         (resolve) =>
           window.setTimeout(async () => {
-            const threadId = Store.keyToThreadId(key);
             const threadInfo = await this.#api.threadInfo(threadId);
             if (threadInfo) {
               this.#store.setGameState(threadId, {nextPostTime: nextPostTime, ...threadInfo});

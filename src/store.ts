@@ -57,19 +57,17 @@ export default class Store implements Storable {
     return parse(window.localStorage.getItem(LOCAL_STORAGE_KEYS[name]));
   }
 
-  #notifyStoreChanged(name: keyof Storable, oldValue: Storable[typeof name], newValue: Storable[typeof name]) {
-    window.dispatchEvent(
-      new StorageEvent('storage', {key: name, newValue: JSON.stringify(newValue), oldValue: JSON.stringify(oldValue)}),
-    );
-  }
-
   async #setGM(name: keyof typeof GM_KEYS, oldValue: Storable[typeof name], newValue: Storable[typeof name]) {
-    console.log('setgm', name, oldValue, newValue);
     if (oldValue !== newValue) {
       if (newValue !== undefined) await GM.setValue(GM_KEYS[name], newValue);
       else await GM.deleteValue(GM_KEYS[name]);
-      console.log('set', await GM.getValue(GM_KEYS[name]));
-      this.#notifyStoreChanged(name, oldValue, newValue);
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: name,
+          newValue: JSON.stringify(newValue),
+          oldValue: JSON.stringify(oldValue),
+        }),
+      );
     }
   }
 
@@ -82,7 +80,6 @@ export default class Store implements Storable {
     if (oldValue !== newValue) {
       if (newValue !== undefined) window.localStorage.setItem(LOCAL_STORAGE_KEYS[name], stringify(newValue));
       else window.localStorage.removeItem(LOCAL_STORAGE_KEYS[name]);
-      this.#notifyStoreChanged(name, oldValue, newValue);
     }
   }
 
@@ -147,9 +144,6 @@ export default class Store implements Storable {
     const oldValue = this.#gameStates.get(threadId);
     this.#gameStates.set(threadId, state);
     window.localStorage.setItem(key, JSON.stringify(state));
-    window.dispatchEvent(
-      new StorageEvent('storage', {key: key, newValue: JSON.stringify(state), oldValue: JSON.stringify(oldValue)}),
-    );
   }
   #allGameStates() {
     return new Map<number, GameState>(
@@ -168,13 +162,7 @@ export default class Store implements Storable {
     if (threadId in this.#gameStates) {
       const oldValue = this.#gameStates.get(threadId);
       this.#gameStates.delete(threadId);
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: KEY_GAME_STATE_PREFIX + threadId,
-          newValue: undefined,
-          oldValue: JSON.stringify(oldValue),
-        }),
-      );
+      window.localStorage.removeItem(KEY_GAME_STATE_PREFIX + threadId);
     }
   }
   static keyToThreadId(key: string) {
