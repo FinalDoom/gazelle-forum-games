@@ -4,7 +4,7 @@ import Store from './store';
 
 export default class ForumThread {
   #api: Api;
-  isLastPage: boolean;
+  #isLastPage: boolean;
   #log: Log;
   #store: Store;
   #threadId: number;
@@ -15,7 +15,7 @@ export default class ForumThread {
     this.#store = store;
     this.#threadId = threadId;
 
-    this.isLastPage = $('.linkbox_top > :last-child').is('strong');
+    this.#isLastPage = $('.linkbox_top > :last-child').is('strong');
   }
 
   static getPostId(post) {
@@ -35,14 +35,13 @@ export default class ForumThread {
   }
 
   #getRecentPostInfo() {
-    if (this.isLastPage) {
+    if (this.#isLastPage) {
       const userId = $('#nav_userinfo a')
         .attr('href')
         .match(/id=(\d+)/)[1];
       const lastPostByUser = $(`.forum_post a.username[href$='id=${userId}']:visible`).last().closest('table');
-      const firstPostOnPage = $('.forum_post');
+      const firstPostOnPage = $('.forum_post').eq(0);
       const post = lastPostByUser.length ? lastPostByUser : firstPostOnPage;
-      const thread = this;
       const otherPosts = [
         ...(post === firstPostOnPage // Include the first post (not belonging to this user)
           ? [ForumThread.getPostId(firstPostOnPage)]
@@ -111,15 +110,19 @@ export default class ForumThread {
     });
 
     // Update state if monitored
-    if (this.isMonitored && this.isLastPage) {
+    if (this.isMonitored && this.#isLastPage) {
       const state = this.state;
       const {canPost: previousCanPost} = state;
       if (state) {
         this.#log.debug('Updating states from', state);
         const {lastPostTime, otherPostIds} = this.#getRecentPostInfo();
-        const nextPostTime = new Date(lastPostTime + state.postTimeLimit * 3600000);
-        state.nextPostTime = nextPostTime;
-        state.canPost = otherPostIds.length >= state.postCountLimit || nextPostTime < new Date();
+        if (!isNaN(lastPostTime)) {
+          const nextPostTime = new Date(lastPostTime + state.postTimeLimit * 3600000);
+          state.nextPostTime = nextPostTime;
+          state.canPost = otherPostIds.length >= state.postCountLimit || nextPostTime < new Date();
+        } else {
+          state.canPost = otherPostIds.length >= state.postCountLimit;
+        }
         this.#log.debug('New state', state);
         if (previousCanPost != state.canPost) this.#store.setGameState(this.#threadId, state);
       }
