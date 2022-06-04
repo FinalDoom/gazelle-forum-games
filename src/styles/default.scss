@@ -1,11 +1,13 @@
 @mixin status-circle($color) {
   span.last_topic::before {
     content: '';
-    border-radius: 7.5px;
     background-color: $color;
+    border: 1px solid black;
+    border-radius: 7.5px;
+    box-shadow: 1px 1px 0.5px gray;
+    box-sizing: border-box;
     float: left;
     margin-right: 5px;
-    margin-top: 3px;
     height: 15px;
     width: 15px;
   }
