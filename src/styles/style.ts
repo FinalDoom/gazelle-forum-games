@@ -75,7 +75,6 @@ export class BaseStyle implements Style {
   }
 
   modifyIcon(icon: JQuery, canPost: boolean) {
-    console.log(icon, icon.find('.last_topic'));
     icon
       .next()
       .find('.last_topic')
@@ -100,7 +99,6 @@ export class BaseStyle implements Style {
     }
 
     const row = icon.closest('tr');
-    console.log(threadId, threadId, canPost);
     if (icon.is('.unread')) {
       if (canPost) this.styleRow(row, 'unread-eligible');
       else this.styleRow(row, 'unread-ineligible');
