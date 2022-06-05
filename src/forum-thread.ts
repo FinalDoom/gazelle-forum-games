@@ -70,7 +70,7 @@ export default class ForumThread {
   async changeMonitoring(monitoringOn) {
     if (this.isMonitored === monitoringOn) return true;
     if (monitoringOn) {
-      window.noty({type: 'success', text: 'Monitoring forum game for post readiness.'});
+      unsafeWindow.noty({type: 'success', text: 'Monitoring forum game for post readiness.'});
       const threadInfo = await this.#api.threadInfo(this.#threadId);
       if (threadInfo) {
         this.state = threadInfo;
