@@ -1,7 +1,7 @@
 {
   "name": "GGn Forum Games Checker",
   "namespace": "https://gazellegames.net/",
-  "require": ["https://code.jquery.com/jquery-3.6.0.js"],
+  "require": ["https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js", "https://code.jquery.com/jquery-3.6.0.js"],
   "match": [
     "https://gazellegames.net/forums.php?*action=viewforum&forumid=55*",
     "https://gazellegames.net/forums.php?*action=viewthread&threadid=*"

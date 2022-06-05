@@ -158,8 +158,7 @@ export default class Store implements Storable {
     return this.#gameStates.has(threadId);
   }
   removeMonitoring(threadId: number) {
-    if (threadId in this.#gameStates) {
-      const oldValue = this.#gameStates.get(threadId);
+    if (this.#gameStates.has(threadId)) {
       this.#gameStates.delete(threadId);
       window.localStorage.removeItem(KEY_GAME_STATE_PREFIX + threadId);
     }
