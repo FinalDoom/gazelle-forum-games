@@ -45,7 +45,7 @@
     "@types/greasemonkey": "^4.0.2",
     "@types/jquery": "^3.5.14",
     "@types/react": "^18.0.9",
-    "colorette": "^2.0.16",
+    "colorette": "^2.0.17",
     "esm": "^3.2.25",
     "jquery": "^3.6.0",
     "node-sass": "^7.0.1",
