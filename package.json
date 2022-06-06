@@ -42,7 +42,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@rollup/plugin-typescript": "^8.3.2",
-    "@types/greasemonkey": "^4.0.2",
+    "@types/greasemonkey": "^4.0.3",
     "@types/jquery": "^3.5.14",
     "@types/react": "^18.0.9",
     "colorette": "^2.0.16",
