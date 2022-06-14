@@ -81,8 +81,8 @@ export class BaseStyle implements Style {
   }
 
   setPostState(threadId: number, canPost: boolean): void {
-    const icon = document.querySelector(`a[href$='threadid=${threadId}']`).closest('td')
-      .previousElementSibling as HTMLElement;
+    const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
+      ?.previousElementSibling as HTMLElement;
 
     if (
       !icon ||
