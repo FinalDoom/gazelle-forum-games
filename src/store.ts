@@ -1,13 +1,74 @@
-import {GameState} from './state';
+interface GameState {
+  /** Number of posts required before user can post again. */
+  postCountLimit: number;
+  /** true if this user can post in this game. */
+  canPost: boolean;
+  /** Date that next post will be allowed. */
+  nextPostTime?: Date;
+  /** Number of hours required before user can post again. */
+  postTimeLimit: number;
+}
 
 interface StorableGM {
+  /**
+   * Api key that has "Forums" permission, stored for this script.
+   */
   apiKey: string;
 }
 interface StorableLocalStorage {
+  /**
+   * Number of API requests made in last ten second window.
+   */
   apiTenSecondRequests: number;
+  /**
+   * Start time of current ten second window.
+   */
   apiTenSecondTime: number;
 }
-export interface Storable extends StorableGM, StorableLocalStorage {}
+interface Storable extends StorableGM, StorableLocalStorage {}
+export default interface Store extends Storable {
+  /**
+   * Map of thread id to game state.
+   */
+  readonly gameStates: Map<number, GameState>;
+
+  /**
+   * Initializes store with default/stored values. Should be called after new instances are made.
+   */
+  init: () => Promise<void>;
+  /**
+   * Resets API throttling store variables (new ten second {@link apiTenSecondTime}, 0 {@link apiTenSecondRequests}).
+   */
+  resetApiThrottle: () => void;
+  /**
+   * Increments count of requests made in ten second window ({@link apiTenSecondRequests}).
+   */
+  incrementApiRequestsCount: () => void;
+  /**
+   * Get a specific game state by thread id
+   *
+   * @param threadId the id of the thread to get state for
+   */
+  getGameState: (threadId: string | number) => GameState;
+  /**
+   * Sets a game state by id.
+   *
+   * @param threadId the id of the thread to get state for
+   * @param state the state to set for that game
+   */
+  setGameState: (threadId: number, state: GameState) => void;
+  /**
+   * @param threadId thread id to check state for
+   * @returns true if the game is monitored by this script, false otherwise
+   */
+  isGameMonitored: (threadId: number) => boolean;
+  /**
+   * Removes stored state and unmonitores thread by id.
+   *
+   * @param threadId thread id to remove monitoring for
+   */
+  removeMonitoring: (threadId: number) => void;
+}
 
 type GMKeys = {[key in keyof StorableGM]: string};
 const GM_KEYS: GMKeys = {
@@ -21,7 +82,15 @@ const LOCAL_STORAGE_KEYS: LocalStorageKeys = {
 
 export const KEY_GAME_STATE_PREFIX = 'forumGamesState';
 
-export default class Store implements Storable {
+/**
+ * @param key window.localStorage key to parse for thread id
+ * @returns numeric thread id of the passed key
+ */
+function keyToThreadId(key: string) {
+  return Number(key.substring(KEY_GAME_STATE_PREFIX.length));
+}
+
+export class ForumGameStore implements Store {
   #apiKey: string;
   #apiTenSecondRequests: number;
   #apiTenSecondTime: number;
@@ -57,7 +126,7 @@ export default class Store implements Storable {
     return parse(window.localStorage.getItem(LOCAL_STORAGE_KEYS[name]));
   }
 
-  async #setGM(name: keyof typeof GM_KEYS, oldValue: Storable[typeof name], newValue: Storable[typeof name]) {
+  async #setGM(name: keyof typeof GM_KEYS, oldValue: Store[typeof name], newValue: Store[typeof name]) {
     if (oldValue !== newValue) {
       if (newValue !== undefined) await GM.setValue(GM_KEYS[name], newValue);
       else await GM.deleteValue(GM_KEYS[name]);
@@ -73,8 +142,8 @@ export default class Store implements Storable {
 
   #setLocalStorage(
     name: keyof typeof LOCAL_STORAGE_KEYS,
-    oldValue: Storable[typeof name],
-    newValue: Storable[typeof name],
+    oldValue: Store[typeof name],
+    newValue: Store[typeof name],
     stringify = JSON.stringify,
   ) {
     if (oldValue !== newValue) {
@@ -89,8 +158,8 @@ export default class Store implements Storable {
       this[key] = JSON.parse(storageEvent.newValue) as never;
     } else if (storageEvent.key.startsWith(KEY_GAME_STATE_PREFIX)) {
       if (storageEvent.newValue)
-        this.#gameStates.set(Store.keyToThreadId(storageEvent.key), JSON.parse(storageEvent.newValue));
-      else this.#gameStates.delete(Store.keyToThreadId(storageEvent.key));
+        this.#gameStates.set(keyToThreadId(storageEvent.key), JSON.parse(storageEvent.newValue));
+      else this.#gameStates.delete(keyToThreadId(storageEvent.key));
     }
   }
 
@@ -134,7 +203,7 @@ export default class Store implements Storable {
   getGameState(threadId: string | number): GameState {
     const key =
       typeof threadId === 'string' && threadId.startsWith(KEY_GAME_STATE_PREFIX)
-        ? Store.keyToThreadId(threadId)
+        ? keyToThreadId(threadId)
         : Number(threadId);
     return this.#gameStates.get(key);
   }
@@ -148,7 +217,7 @@ export default class Store implements Storable {
     return new Map<number, GameState>(
       Object.keys(window.localStorage)
         .filter((key) => key.startsWith(KEY_GAME_STATE_PREFIX))
-        .map((key) => [Number(Store.keyToThreadId(key)), JSON.parse(window.localStorage.getItem(key))]),
+        .map((key) => [Number(keyToThreadId(key)), JSON.parse(window.localStorage.getItem(key))]),
     );
   }
   get gameStates() {
@@ -162,8 +231,5 @@ export default class Store implements Storable {
       this.#gameStates.delete(threadId);
       window.localStorage.removeItem(KEY_GAME_STATE_PREFIX + threadId);
     }
-  }
-  static keyToThreadId(key: string) {
-    return Number(key.substring(15));
   }
 }

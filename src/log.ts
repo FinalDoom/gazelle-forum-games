@@ -9,7 +9,15 @@ export enum LogLevel {
 type ConsoleLogFunc = ((...params: any[]) => void) | ((message: any, ...params: any[]) => void);
 type ConsoleLogArguments = any | (() => any);
 
-export default class Log {
+export default interface Log {
+  timing: (...args: ConsoleLogArguments[]) => void;
+  debug: (...args: ConsoleLogArguments[]) => void;
+  log: (...args: ConsoleLogArguments[]) => void;
+  warn: (...args: ConsoleLogArguments[]) => void;
+  error: (...args: ConsoleLogArguments[]) => void;
+}
+
+export class ConsoleLog implements Log {
   #level: LogLevel;
   #prefix: string;
   #start = new Date();
