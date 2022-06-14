@@ -10,10 +10,10 @@ export default interface Style {
    * Method that can be overridden to apply additional styling to the created indicator icon, such as
    * titles or other information.
    *
-   * @param icon jQuery referencing the element that eligibility styling is being applied to
+   * @param icon element that eligibility styling is being applied to
    * @param canPost true if user is eligible to post in this thread, false otherwise.
    */
-  modifyIcon(icon: JQuery, canPost: boolean): void;
+  modifyIcon(icon: HTMLElement, canPost: boolean): void;
   /**
    * Method that handles assigning participation state to individual rows.
    *
@@ -24,10 +24,10 @@ export default interface Style {
   /**
    * Method that handles styling individual rows to indicate game participation eligibility.
    *
-   * @param row jQuery object that references the current row (<tr>) to style
+   * @param row Element that references the current row (<tr>) to style
    * @param stateName text indicating game row state, used to set class/styling from imported scss
    */
-  styleRow(row: JQuery, stateName: RowState): void;
+  styleRow(row: HTMLTableRowElement, stateName: RowState): void;
 }
 
 /**
@@ -74,32 +74,35 @@ export class BaseStyle implements Style {
     this.#rowClassName = rowClassName;
   }
 
-  modifyIcon(icon: JQuery, canPost: boolean) {
-    icon
-      .next()
-      .find('.last_topic')
-      .attr('title', `You are ${canPost ? 'eligible' : 'ineligible'} to participate in this forum game.`);
+  modifyIcon(icon: HTMLElement, canPost: boolean) {
+    icon.nextElementSibling.querySelector<HTMLSpanElement>('.last_topic').title = `You are ${
+      canPost ? 'eligible' : 'ineligible'
+    } to participate in this forum game.`;
   }
 
   setPostState(threadId: number, canPost: boolean): void {
-    const icon = $(`a[href$='threadid=${threadId}']`).closest('td').prev();
-
-    this.modifyIcon(icon, canPost);
+    const icon = document.querySelector(`a[href$='threadid=${threadId}']`).closest('td')
+      .previousElementSibling as HTMLElement;
 
     if (
-      !icon.length ||
+      !icon ||
       // Technically only locked should be excluded, but we don't have sticky logic
-      icon.is(
-        '.unread_locked_sticky, .read_locked_sticky, ' +
-          '.unread_sticky, .read_sticky, ' +
-          '.unread_locked, .read_locked',
-      )
+      [
+        'unread_locked_sticky',
+        'read_locked_sticky',
+        'unread_sticky',
+        'read_sticky',
+        'unread_locked',
+        'read_locked',
+      ].some((className) => icon.classList.contains(className))
     ) {
       return;
     }
 
+    this.modifyIcon(icon, canPost);
+
     const row = icon.closest('tr');
-    if (icon.is('.unread')) {
+    if (icon.classList.contains('unread')) {
       if (canPost) this.styleRow(row, 'unread-eligible');
       else this.styleRow(row, 'unread-ineligible');
     } else {
@@ -108,7 +111,7 @@ export class BaseStyle implements Style {
     }
   }
 
-  styleRow(row: JQuery, stateName: RowState) {
-    row.addClass([this.#rowClassName, this.#rowClassName + '--' + stateName]);
+  styleRow(row: HTMLTableRowElement, stateName: RowState) {
+    row.classList.add(this.#rowClassName, this.#rowClassName + '--' + stateName);
   }
 }
