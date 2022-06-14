@@ -15,44 +15,63 @@ export default class ForumThread {
     this.#store = store;
     this.#threadId = threadId;
 
-    this.#isLastPage = $('.linkbox_top > :last-child').is('strong');
+    this.#isLastPage = !!document.querySelector('.linkbox_top > strong:last-child');
   }
 
-  static getPostId(post) {
-    return parseInt(new URLSearchParams(post.find('a.post_id').attr('href')).get('postid').split('#')[0]);
+  static getPostId(post: HTMLTableElement) {
+    return (
+      post &&
+      Number(new URLSearchParams(post.querySelector<HTMLAnchorElement>('a.post_id').href).get('postid').split('#')[0])
+    );
   }
 
-  static getPostTime(post) {
-    return new Date(post.find('.time').attr('title')).getTime();
+  static getPostTime(post: HTMLTableElement) {
+    return post && new Date(post.querySelector<HTMLSpanElement>('.time').title).getTime();
   }
 
   static get isForumGame() {
-    return (
+    if (
       window.location.pathname === '/forums.php' &&
-      new URLSearchParams(window.location.search).get('action') === 'viewthread' &&
-      $('#content .linkbox_top').prev('h2').find('a:contains("Forum Games")').length
-    );
+      new URLSearchParams(window.location.search).get('action') === 'viewthread'
+    ) {
+      const linkBox = document.querySelector('#content .linkbox_top');
+      let prev = linkBox.previousElementSibling;
+      while (prev && prev.tagName !== 'H2') {
+        prev = prev.previousElementSibling;
+      }
+      return Array.from(prev.querySelectorAll('a')).some((el) => el.textContent.includes('Forum Games'));
+    }
+
+    return false;
+  }
+
+  static isTableElement(elem: Element): elem is HTMLTableElement {
+    return elem.tagName === 'table';
   }
 
   #getRecentPostInfo() {
     if (this.#isLastPage) {
-      const userId = $('#nav_userinfo a')
-        .attr('href')
-        .match(/id=(\d+)/)[1];
-      const lastPostByUser = $(`.forum_post a.username[href$='id=${userId}']:visible`).last().closest('table');
-      const firstPostOnPage = $('.forum_post').eq(0);
-      const post = lastPostByUser.length ? lastPostByUser : firstPostOnPage;
-      const otherPosts = [
-        ...(post === firstPostOnPage // Include the first post (not belonging to this user)
-          ? [ForumThread.getPostId(firstPostOnPage)]
-          : []),
-        ...post // Get the post IDs after this one
-          .nextAll('table:not(.sticky_post)')
-          .map(function () {
-            return ForumThread.getPostId($(this));
-          })
-          .toArray(),
-      ];
+      const userId = document.querySelector<HTMLAnchorElement>('#nav_userinfo a').href.match(/id=(\d+)/)![1];
+      let lastPostByUser: HTMLTableElement | undefined;
+      for (const el of document.querySelectorAll<HTMLAnchorElement>(`.forum_post a.username[href$='id=${userId}']`)) {
+        // :visible
+        if (el.offsetWidth > 0 || el.offsetHeight > 0) {
+          lastPostByUser = el.closest('table');
+        }
+      }
+      const firstPostOnPage = document.querySelector<HTMLTableElement>('.forum_post');
+      const post = lastPostByUser ? lastPostByUser : firstPostOnPage;
+      const otherPosts = [];
+      if (post === firstPostOnPage) {
+        // Include the first post (not belonging to this user)
+        otherPosts.push(ForumThread.getPostId(firstPostOnPage));
+      }
+      let nextPost: Element | null = post;
+      while ((nextPost = nextPost.nextElementSibling)) {
+        if (ForumThread.isTableElement(nextPost) && !/\bsticky_post\b/.test(nextPost.className)) {
+          otherPosts.push(ForumThread.getPostId(nextPost));
+        }
+      }
       return {lastPostTime: ForumThread.getPostTime(lastPostByUser), otherPostIds: otherPosts};
     }
   }
@@ -87,33 +106,33 @@ export default class ForumThread {
 
   async init() {
     // Add link / checkbox to monitor thread
-    const thread = this;
-    $('#subscribe-link').after(
-      $('<a>')
-        .text(this.isMonitored ? '[ Unmonitor this game ]' : '[ Monitor this game ]')
-        .click(async function () {
-          await thread.changeMonitoring(!thread.isMonitored);
-          $(this).text(thread.isMonitored ? '[ Unmonitor this game ]' : '[ Monitor this game ]');
-        }),
-    );
-    let checkbox: JQuery;
-    $('#subbox')
-      .next()
-      .after(
-        $('<label>').append(
-          (checkbox = $('<input type="checkbox" id="monitoring" />').attr('checked', this.isMonitored.toString())),
-          'Monitor game',
-        ),
-      );
-    $('#quickpostform').on('submit.monitor', async () => {
-      return await this.changeMonitoring(checkbox.prop('checked'));
+    const monitorLink = document.createElement('a');
+    monitorLink.innerText = this.isMonitored ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
+    monitorLink.addEventListener('click', async () => {
+      await this.changeMonitoring(!this.isMonitored);
+      monitorLink.innerText = this.isMonitored ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
+    });
+    document.querySelector('#subscribe-link').after(monitorLink);
+
+    // Checkbox and label next to subscribe checkbox to change monitoring on post submission
+    const monitorCheckbox = document.createElement('input');
+    monitorCheckbox.type = 'checkbox';
+    monitorCheckbox.id = 'monitoring';
+    if (this.isMonitored) monitorCheckbox.checked = true;
+
+    const monitorLabel = document.createElement('label');
+    monitorLabel.append(monitorCheckbox, 'Monitor game');
+    document.querySelector('#subbox').nextElementSibling.after(monitorLabel);
+
+    document.querySelector<HTMLFormElement>('#quickpostform').addEventListener('submit', async () => {
+      return await this.changeMonitoring(monitorCheckbox.checked);
     });
 
     // Update state if monitored
     if (this.isMonitored && this.#isLastPage) {
       const state = this.state;
-      const {canPost: previousCanPost} = state;
       if (state) {
+        const {canPost: previousCanPost} = state;
         this.#log.debug('Updating states from', state);
         const {lastPostTime, otherPostIds} = this.#getRecentPostInfo();
         if (!isNaN(lastPostTime)) {

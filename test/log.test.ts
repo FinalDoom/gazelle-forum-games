@@ -1,15 +1,15 @@
-import Log, {LogLevel} from '../src/log';
+import Log, {ConsoleLog, LogLevel} from '../src/log';
 import {describe} from 'mocha';
 import {stdout, stderr} from 'test-console';
 import {expect} from 'chai';
 
 const prefix = '[test]';
-const noneLog = new Log(prefix, LogLevel.None);
-const errorLog = new Log(prefix, LogLevel.Error);
-const warningLog = new Log(prefix, LogLevel.Warning);
-const logLog = new Log(prefix, LogLevel.Log);
-const debugLog = new Log(prefix, LogLevel.Debug);
-const timingLog = new Log(prefix, LogLevel.Timing);
+const noneLog = new ConsoleLog(prefix, LogLevel.None);
+const errorLog = new ConsoleLog(prefix, LogLevel.Error);
+const warningLog = new ConsoleLog(prefix, LogLevel.Warning);
+const logLog = new ConsoleLog(prefix, LogLevel.Log);
+const debugLog = new ConsoleLog(prefix, LogLevel.Debug);
+const timingLog = new ConsoleLog(prefix, LogLevel.Timing);
 const fnRet = 'function';
 const fn = () => fnRet;
 
@@ -138,7 +138,7 @@ function makeTests(logFn: Log[keyof Log], stdInspect: typeof stdout | typeof std
   });
 }
 
-describe('Log', () => {
+describe('ConsoleLog', () => {
   makeTests(errorLog.error.bind(errorLog), stderr, LogLevel.Error);
   makeTests(warningLog.warn.bind(warningLog), stderr, LogLevel.Warning);
   makeTests(logLog.log.bind(logLog), stdout, LogLevel.Log);

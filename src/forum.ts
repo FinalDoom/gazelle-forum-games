@@ -1,6 +1,6 @@
 import Api, {MAX_API_QUERIES_BEFORE_THROTTLE, TEN_SECOND_DELAY_MILLIS} from './api';
 import Store, {KEY_GAME_STATE_PREFIX} from './store';
-import {Style} from './styles/style';
+import Style from './styles/style';
 
 export default class Forum {
   #api: Api;
@@ -29,17 +29,20 @@ export default class Forum {
   }
 
   listenForMorePages() {
-    var observer = new MutationObserver(() => {
-      observer.disconnect();
-      this.showForumGamePostAvailability();
-      this.listenForMorePages();
-    });
-    observer.observe($('.forum_55 table.forum_index')[0], {
-      attributes: false,
-      childList: true,
-      characterData: false,
-      subtree: true,
-    });
+    const forumTable = document.querySelector('.forum_55 table.forum_index');
+    if (forumTable) {
+      var observer = new MutationObserver(() => {
+        observer.disconnect();
+        this.showForumGamePostAvailability();
+        this.listenForMorePages();
+      });
+      observer.observe(forumTable, {
+        attributes: false,
+        childList: true,
+        characterData: false,
+        subtree: true,
+      });
+    }
   }
 
   async recheckEligibility() {

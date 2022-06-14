@@ -5,7 +5,7 @@ type RowState = 'read-eligible' | 'read-ineligible' | 'unread-eligible' | 'unrea
 /**
  * Class that handles importing stylesheet and applying it to the forum index to indicate eligibility
  */
-export interface Style {
+export default interface Style {
   /**
    * Method that can be overridden to apply additional styling to the created indicator icon, such as
    * titles or other information.
@@ -31,22 +31,22 @@ export interface Style {
 }
 
 /**
+ * Array of test functions to functions that instantiate a {@link Style}.
+ * Use {@link StyleFactory.registerStyle} to alter.
+ */
+const registeredStyles = [] as Array<[() => boolean, () => Style]>;
+
+/**
  * Used to build a style matching the current forum game index stylesheet.
  */
-export class StyleFactory {
-  /**
-   * Should not be accessed outside this class. Use {@link registerStyle} to alter.
-   */
-  static registeredStyles: Array<[() => boolean, () => Style]> = [
-    [() => true, () => new BaseStyle('forum-games-checker-default__row')],
-  ];
-
+export const StyleFactory = {
   /**
    * @returns An instance of a {@link Style} that matches the current index stylesheet.
    */
-  static build() {
-    return StyleFactory.registeredStyles.find(([testFunction, _]) => testFunction())[1]();
-  }
+  build: () => {
+    const matchedStyle = registeredStyles.find(([testFunction, _]) => testFunction());
+    return matchedStyle ? matchedStyle[1]() : new BaseStyle('forum-games-checker-default__row');
+  },
 
   /**
    * Register a new {@link Style} to be returned by {@link build}.
@@ -54,10 +54,10 @@ export class StyleFactory {
    * @param testFunction Function that returns true if the caller {@link Style} can be applied to the current index stylesheet.
    * @param createFunction Function that instantiates the caller {@link Style}.
    */
-  static registerStyle(testFunction: () => boolean, createFunction: () => Style) {
-    this.registeredStyles.unshift([testFunction, createFunction]);
-  }
-}
+  registerStyle: (testFunction: () => boolean, createFunction: () => Style) => {
+    registeredStyles.unshift([testFunction, createFunction]);
+  },
+};
 
 /**
  * Base style that can be overridden for specific stylesheet logic. Has the default implementation of all methods.
