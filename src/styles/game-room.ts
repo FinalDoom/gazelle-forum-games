@@ -4,7 +4,7 @@ import {BaseStyle, StyleFactory} from './style';
 
 // Register this style in the factory so it'll be used when our condition matches.
 StyleFactory.registerStyle(
-  () => $('link[rel="stylesheet"][title]').attr('title') === 'game_room',
+  () => document.querySelector<HTMLLinkElement>('link[rel="stylesheet"][title]').title === 'game_room',
   () => new GameRoomStyle(),
 );
 
@@ -15,7 +15,7 @@ class GameRoomStyle extends BaseStyle {
   }
 
   // Instead of applying title to the thread link span, we apply it to the icon itself for this style
-  modifyIcon(icon: JQuery, canPost: boolean): void {
-    icon.attr('title', `You are ${canPost ? 'eligible' : 'ineligible'} to participate in this forum game.`);
+  modifyIcon(icon: HTMLElement, canPost: boolean): void {
+    icon.title = `You are ${canPost ? 'eligible' : 'ineligible'} to participate in this forum game.`;
   }
 }

@@ -18,11 +18,8 @@ export default {
     file: 'dist/bundle.user.js',
     format: 'iife',
     name: 'rollupUserScript',
-    banner: () => '\n/*\n' + fs.readFileSync('./LICENSE', 'utf8') + '*/\n\n/* globals React, ReactDOM */',
+    banner: () => '\n/*\n' + fs.readFileSync('./LICENSE', 'utf8') + '*/\n',
     sourcemap: true,
-    globals: {
-      jquery: 'JQuery',
-    },
   },
   plugins: [
     replace({
@@ -51,5 +48,4 @@ export default {
       insert: true,
     }),
   ],
-  external: (id) => /^react(-dom)?$/.test(id),
 };
