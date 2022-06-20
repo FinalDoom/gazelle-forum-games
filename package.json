@@ -48,7 +48,7 @@
     "@types/react": "^18.0.12",
     "@types/test-console": "^2.0.0",
     "chai": "^4.3.6",
-    "colorette": "^2.0.18",
+    "colorette": "^2.0.19",
     "esm": "^3.2.25",
     "mocha": "^10.0.0",
     "node-sass": "^7.0.1",
