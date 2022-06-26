@@ -20,6 +20,9 @@ export default interface Log {
   warn: (...args: ConsoleLogArguments[]) => void;
   /** Log the given arguments to error out */
   error: (...args: ConsoleLogArguments[]) => void;
+
+  /** Change the log level (which level is output) */
+  setLevel: (level: LogLevel) => void;
 }
 
 export class ConsoleLog implements Log {
@@ -56,5 +59,9 @@ export class ConsoleLog implements Log {
 
   error(...args: ConsoleLogArguments[]) {
     if (this.#level >= LogLevel.Error) this.#logToConsole(console.error, ...args);
+  }
+
+  setLevel(level: LogLevel) {
+    this.#level = level;
   }
 }

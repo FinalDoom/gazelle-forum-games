@@ -19,6 +19,8 @@ declare global {
   const STORE = new ForumGameStore();
   await STORE.init();
   const API = new GazelleApi(STORE, LOG);
+  new Menu(LOG);
+
   if (new URLSearchParams(window.location.search).get('action') === 'viewthread' && ForumThread.isForumGame) {
     new ForumThread(API, LOG, STORE, Number(new URLSearchParams(window.location.search).get('threadid'))).init();
   } else {
