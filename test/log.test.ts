@@ -13,7 +13,11 @@ const timingLog = new ConsoleLog(prefix, LogLevel.Timing);
 const fnRet = 'function';
 const fn = () => fnRet;
 
-function makeTests(logFn: Log[keyof Log], stdInspect: typeof stdout | typeof stderr, level: LogLevel): void {
+function makeTests(
+  logFn: Log[keyof Omit<Log, 'setLevel'>],
+  stdInspect: typeof stdout | typeof stderr,
+  level: LogLevel,
+): void {
   const fnName = logFn.name.substring(6); // "bound error" eg., remove "bound ";
   const text = logFn.name + ' asdf';
   const doExpect = (output: ReadonlyArray<string>, text: string) => {
