@@ -2,6 +2,9 @@ import Api, {MAX_API_QUERIES_BEFORE_THROTTLE, TEN_SECOND_DELAY_MILLIS} from './a
 import Store, {KEY_GAME_STATE_PREFIX} from './store';
 import Style from './styles/style';
 
+/**
+ * Handles displaying game state on the forum index.
+ */
 export default class Forum {
   #api: Api;
   #store: Store;
@@ -22,12 +25,19 @@ export default class Forum {
     );
   }
 
+  /**
+   * Style each thread row with its state.
+   */
   showForumGamePostAvailability() {
     for (const [key, state] of this.#store.gameStates.entries()) {
       this.#style.setPostState(key, state.canPost);
     }
   }
 
+  /**
+   * Watch for additional forum thread lines added by other endless scroll scripts
+   * and style them accordingly.
+   */
   listenForMorePages() {
     const forumTable = document.querySelector('.forum_55 table.forum_index');
     if (forumTable) {

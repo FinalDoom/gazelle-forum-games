@@ -4,23 +4,39 @@ import Store from './store';
 export const TEN_SECOND_DELAY_MILLIS = 11000;
 export const MAX_API_QUERIES_BEFORE_THROTTLE = 5;
 
+/**
+ * Top-level structure of a success response from the API.
+ */
 interface SuccessfulApiResponse<T> {
   status: 'success';
   response: T;
 }
+/**
+ * Top-level structure of a failure response from the API.
+ */
 interface FailureApiResponse {
   status: 'failure';
   error: string;
 }
 type ApiResponse<T> = SuccessfulApiResponse<T> | FailureApiResponse;
 
+/**
+ * JSON returned by thread info API endpoint
+ */
 interface ApiThreadInfo {
+  /** Thread ID as a string */
   id: string;
+  /** Forum ID as a string */
   forumID: string;
+  /** true if the thread is locked */
   locked: boolean;
+  /** Number of posts by other users requried until user can post again */
   postCountLimit: string;
+  /** Amount of time that must pass until user can post again (if postCountLimit not satisfied) */
   postTimeLimit: string;
+  /** true if the thread can be posted in */
   canPost: boolean;
+  /** true if the thread is subscribed to */
   subscribed: boolean;
 }
 
@@ -31,8 +47,18 @@ interface ThreadInfo {
 }
 
 export default interface Api {
+  /**
+   * Execute a call against an API endpoint with throttling.
+   *
+   * @param data url parameters to pass in the api call.
+   */
   call<T>(data: Record<string, string>): Promise<T>;
   threadInfo(threadId: number): Promise<false | ThreadInfo>;
+  /**
+   * Gets {@link ThreadInfo} on the passed threadId from the API.
+   *
+   * @param threadId id of the thread to get info on
+   */
 }
 
 export class GazelleApi implements Api {
