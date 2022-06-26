@@ -1,13 +1,4 @@
-interface GameState {
-  /** Number of posts required before user can post again. */
-  postCountLimit: number;
-  /** true if this user can post in this game. */
-  canPost: boolean;
-  /** Date that next post will be allowed. */
-  nextPostTime?: Date;
-  /** Number of hours required before user can post again. */
-  postTimeLimit: number;
-}
+import GameState from './models/game-state';
 
 interface StorableGM {
   /**
@@ -15,16 +6,7 @@ interface StorableGM {
    */
   apiKey: string;
 }
-interface StorableLocalStorage {
-  /**
-   * Number of API requests made in last ten second window.
-   */
-  apiTenSecondRequests: number;
-  /**
-   * Start time of current ten second window.
-   */
-  apiTenSecondTime: number;
-}
+interface StorableLocalStorage {}
 interface Storable extends StorableGM, StorableLocalStorage {}
 export default interface Store extends Storable {
   /**
@@ -36,14 +18,6 @@ export default interface Store extends Storable {
    * Initializes store with default/stored values. Should be called after new instances are made.
    */
   init: () => Promise<void>;
-  /**
-   * Resets API throttling store variables (new ten second {@link apiTenSecondTime}, 0 {@link apiTenSecondRequests}).
-   */
-  resetApiThrottle: () => void;
-  /**
-   * Increments count of requests made in ten second window ({@link apiTenSecondRequests}).
-   */
-  incrementApiRequestsCount: () => void;
   /**
    * Get a specific game state by thread id
    *
@@ -74,11 +48,6 @@ type GMKeys = {[key in keyof StorableGM]: string};
 const GM_KEYS: GMKeys = {
   apiKey: 'forumgames_apikey',
 };
-type LocalStorageKeys = {[key in keyof StorableLocalStorage]: string};
-const LOCAL_STORAGE_KEYS: LocalStorageKeys = {
-  apiTenSecondTime: 'forumGamesTenSecondTime',
-  apiTenSecondRequests: 'forumGamesApiRequests',
-};
 
 export const KEY_GAME_STATE_PREFIX = 'forumGamesState';
 
@@ -92,14 +61,10 @@ function keyToThreadId(key: string) {
 
 export class ForumGameStore implements Store {
   #apiKey: string;
-  #apiTenSecondRequests: number;
-  #apiTenSecondTime: number;
   #gameStates: Map<number, GameState>;
 
   async init() {
     this.#apiKey = await this.#initGM('apiKey');
-    this.#apiTenSecondRequests = this.#initLocalStorage('apiTenSecondRequests', 0);
-    this.#apiTenSecondTime = this.#initLocalStorage('apiTenSecondTime', 0);
     this.#gameStates = this.#allGameStates();
 
     window.addEventListener('storage', this.#storageListener.bind(this));
@@ -113,19 +78,6 @@ export class ForumGameStore implements Store {
     return await GM.getValue(GM_KEYS[name]);
   }
 
-  #initLocalStorage(
-    name: keyof typeof LOCAL_STORAGE_KEYS,
-    defaultValue: any,
-    stringify = JSON.stringify,
-    parse = JSON.parse,
-  ) {
-    if (!window.localStorage.hasOwnProperty(LOCAL_STORAGE_KEYS[name])) {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS[name], stringify(defaultValue));
-      return defaultValue;
-    }
-    return parse(window.localStorage.getItem(LOCAL_STORAGE_KEYS[name]));
-  }
-
   async #setGM(name: keyof typeof GM_KEYS, oldValue: Store[typeof name], newValue: Store[typeof name]) {
     if (oldValue !== newValue) {
       if (newValue !== undefined) await GM.setValue(GM_KEYS[name], newValue);
@@ -137,18 +89,6 @@ export class ForumGameStore implements Store {
           oldValue: JSON.stringify(oldValue),
         }),
       );
-    }
-  }
-
-  #setLocalStorage(
-    name: keyof typeof LOCAL_STORAGE_KEYS,
-    oldValue: Store[typeof name],
-    newValue: Store[typeof name],
-    stringify = JSON.stringify,
-  ) {
-    if (oldValue !== newValue) {
-      if (newValue !== undefined) window.localStorage.setItem(LOCAL_STORAGE_KEYS[name], stringify(newValue));
-      else window.localStorage.removeItem(LOCAL_STORAGE_KEYS[name]);
     }
   }
 
@@ -170,33 +110,6 @@ export class ForumGameStore implements Store {
     const oldValue = this.#apiKey;
     this.#apiKey = key;
     this.#setGM('apiKey', oldValue, key);
-  }
-
-  // API-related functions
-  get apiTenSecondRequests() {
-    return this.#apiTenSecondRequests;
-  }
-  set apiTenSecondRequests(requests) {
-    const oldValue = this.#apiTenSecondRequests;
-    this.#apiTenSecondRequests = requests;
-    this.#setLocalStorage('apiTenSecondRequests', oldValue, requests);
-  }
-
-  get apiTenSecondTime() {
-    return this.#apiTenSecondTime;
-  }
-  set apiTenSecondTime(time) {
-    const oldValue = this.#apiTenSecondTime;
-    this.#apiTenSecondTime = time;
-    this.#setLocalStorage('apiTenSecondTime', oldValue, time);
-  }
-
-  resetApiThrottle() {
-    this.apiTenSecondRequests = 0;
-    this.apiTenSecondTime = new Date().getTime();
-  }
-  incrementApiRequestsCount() {
-    this.apiTenSecondRequests = this.#apiTenSecondRequests + 1;
   }
 
   // Game state-related functions

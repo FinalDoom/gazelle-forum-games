@@ -6,5 +6,5 @@
     "https://gazellegames.net/forums.php?*action=viewforum&forumid=55*",
     "https://gazellegames.net/forums.php?*action=viewthread&threadid=*"
   ],
-  "grant": ["GM.getValue", "GM.setValue"]
+  "grant": ["GM.getValue", "GM.setValue", "GM.registerMenuCommand"]
 }

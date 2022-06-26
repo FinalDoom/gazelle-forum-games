@@ -2,6 +2,9 @@ import Api from './api';
 import Log from './log';
 import Store from './store';
 
+/**
+ * Handles checking individual forum thread details and updating state if possible.
+ */
 export default class ForumThread {
   #api: Api;
   #isLastPage: boolean;
@@ -18,6 +21,10 @@ export default class ForumThread {
     this.#isLastPage = !!document.querySelector('.linkbox_top > strong:last-child');
   }
 
+  /**
+   * @param post the post to get the ID of.
+   * @returns the ID of the post passed in.
+   */
   static getPostId(post: HTMLTableElement) {
     return (
       post &&
@@ -25,10 +32,19 @@ export default class ForumThread {
     );
   }
 
+  /**
+   * @param post the post to get the post time of.
+   * @returns post date as epoch millis of the post passed in.
+   */
   static getPostTime(post: HTMLTableElement) {
     return post && new Date(post.querySelector<HTMLSpanElement>('.time').title).getTime();
   }
 
+  /**
+   * Checks if the current thread is a forum game thread.
+   *
+   * @returns true if the current thread is a forum game.
+   */
   static get isForumGame() {
     if (
       window.location.pathname === '/forums.php' &&
@@ -45,6 +61,9 @@ export default class ForumThread {
     return false;
   }
 
+  /**
+   * @returns true if the argument is a table element (type guard)
+   */
   static isTableElement(elem: Element): elem is HTMLTableElement {
     return elem.tagName === 'table';
   }
@@ -86,6 +105,12 @@ export default class ForumThread {
     this.#store.setGameState(this.#threadId, state);
   }
 
+  /**
+   * Monitors or unmonitors this thread, if it was not already in that state.
+   *
+   * @param monitoringOn true to turn on monitoring, false to turn it off
+   * @returns true if the monitoring state was changed, false if it was not
+   */
   async changeMonitoring(monitoringOn) {
     if (this.isMonitored === monitoringOn) return true;
     if (monitoringOn) {
