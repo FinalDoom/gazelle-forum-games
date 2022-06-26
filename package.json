@@ -1,6 +1,6 @@
 {
   "name": "gazelle-forum-games-eligibility-checker",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "Tracks forum games participation eligibility and marks thread read indicators accordingly.",
   "keywords": [
     "gazelle",
@@ -50,6 +50,7 @@
     "chai": "^4.3.6",
     "colorette": "^2.0.18",
     "esm": "^3.2.25",
+    "limiter": "^2.1.0",
     "mocha": "^10.0.0",
     "node-sass": "^7.0.1",
     "rollup": "^2.75.6",
