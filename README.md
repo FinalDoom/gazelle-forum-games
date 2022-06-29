@@ -6,15 +6,24 @@ Install URL: https://github.com/FinalDoom/gazelle-forum-games/releases/latest/do
 
 # Requirements
 
-The script will ask for an API key the first time it runs. You can generate these on the edit profile page. The key must have Forums permission.
+The script will ask for an API key the first time it runs. You can generate these on the edit profile page. The key must have `Forums` permission.
 
 # Usage
 
-To make use of the script, after providing an API key, simply visit your favorite forum games, and click the `[ Monitor this game ]` link that appears at the top when this script is enabled.
+1. Install the script in your favorite userscript manager.
+2. Visit your favorite forum games, and click the `[ Monitor this game ]` link that appears at the top when this script is enabled.
+3. Keep the forum games index open in a tab, which will keep game states updated and display eligibility.
+   - **Note** that updating eligibility can take a while: 10 seconds per 5 monitored games after the first 5.
+
+## About eligibility updating
+
+Eligibility will be updated any time you post in a game, once the last page has loaded.
+
+When you load the forum games index, the script will first check all monitored games for eligibility.
+After the initial check, the script will update the status for any game you are ineligible for, every minute (once current round of checking completes).
 
 The script will display eligibility on the forum games index, including if you have endless scroll enabled via another script.
 As eligibility updates, the indicators on the index will update as well.
-Eligibility is checked periodically when the index page is open, as well as on the last page of any monitored forum game thread (including when posting to the game).
 
 ## Resetting API Key
 
