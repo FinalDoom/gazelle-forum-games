@@ -23,8 +23,10 @@ export default {
   },
   plugins: [
     replace({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-      ENVIRONMENT: JSON.stringify('production'),
+      values: {
+        'process.env.NODE_ENV': JSON.stringify('production'),
+        ENVIRONMENT: JSON.stringify('production'),
+      },
       preventAssignment: true,
     }),
     nodeResolve({extensions: ['.js', '.ts']}),
@@ -43,6 +45,15 @@ export default {
         author: pkg.author,
         license: pkg.license,
       },
+    }),
+    replace({
+      delimiters: ['', '\\b(?!\\.)'],
+      values: {
+        // Sadly downloadUrl is not supported by the metablock plugin, but this hack works.
+        '// @author': `// @downloadUrl https://github.com/FinalDoom/gazelle-forum-games/releases/latest/download/eligibility-checker.user.js
+// @author`,
+      },
+      preventAssignment: true,
     }),
     scss({
       insert: true,
