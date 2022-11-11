@@ -23,7 +23,7 @@ declare global {
   function askForApiKey() {
     const input = window.prompt(`Please input your GGn API key.
 If you don't have one, please generate one from your Edit Profile page: https://gazellegames.net/user.php?action=edit.
-The API key must have "Items" permission
+The API key must have "Forums" permission
 
 Please disable this userscript until you have one as this prompt will continue to show until you enter one in.`);
     const trimmed = input.trim();
