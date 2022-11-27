@@ -70,6 +70,11 @@ export class GazelleApi implements Api {
       tokensPerInterval: MAX_QUERIES_PER_WINDOW,
       interval: API_THROTTLE_WINDOW_MILLLIS,
     });
+    this.#log.debug(
+      'Built API with throttle %d queries per %d milliseconds.',
+      MAX_QUERIES_PER_WINDOW,
+      API_THROTTLE_WINDOW_MILLLIS,
+    );
   }
 
   async #sleep(millisToSleep: number) {
@@ -95,9 +100,10 @@ export class GazelleApi implements Api {
   }
 
   async call(data: Record<string, string>): Promise<Response> {
+    this.#log.debug('Call attempt', data);
     return this.#fetchAndRetryIfNecessary(() =>
       this.#acquireToken(() => {
-        this.#log.debug('API call', data);
+        this.#log.debug('Call executing fetch', data);
         return fetch('/api.php?' + new URLSearchParams(data).toString(), {
           method: 'GET',
           headers: {
@@ -110,6 +116,7 @@ export class GazelleApi implements Api {
   }
 
   threadInfo(threadId: number): Promise<GameState> {
+    this.#log.debug('Getting thread info for threadId: ', threadId);
     return (
       this.call({request: 'forums', type: 'thread_info', id: String(threadId)})
         .then((response) => response.json())
@@ -119,6 +126,7 @@ export class GazelleApi implements Api {
             this.#log.error(`API returned unsuccessful: ${status}`, data);
             throw data.error;
           }
+          this.#log.debug('Thread Info response for threadId %d:', threadId, data.response);
           return data.response;
         })
         // Also available title and subscribed
