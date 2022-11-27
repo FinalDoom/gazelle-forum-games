@@ -11,8 +11,9 @@ The script will ask for an API key the first time it runs. You can generate thes
 # Usage
 
 1. Install the script in your favorite userscript manager.
-2. Visit your favorite forum games, and click the `[ Monitor this game ]` link that appears at the top when this script is enabled.
-3. Keep the forum games index open in a tab, which will keep game states updated and display eligibility.
+2. Visit the forum games forum or a forum thread, and follow the popup prompt instructions to enter your API key.
+3. Visit your favorite forum games, and click the `[ Monitor this game ]` link that appears at the top when this script is enabled.
+4. Keep the forum games index open in a tab, which will keep game states updated and display eligibility.
    - **Note** that updating eligibility can take a while: 10 seconds per 5 monitored games after the first 5.
 
 ## About eligibility updating
@@ -68,3 +69,11 @@ If you use another stylesheet and want to see specific support, post in the foru
 It's fairly simple to add styling for an unsupported GGn stylesheet. In the styles folder, copy game-room.scss and game-room.ts, then modify to fit your style. Add an import for your new .ts file into all-styles.ts and it should load automatically.
 
 See the comments in game-room.ts and all-styles.ts for more information on specifics, as well as JSDocs.
+
+# Troubleshooting
+
+There is not a lot of info for troubleshooting, but there are a few steps you can take aside from posting to the support thread:
+
+- Double check you followed the steps under [Usage](#usage).
+- Press F12 to open the developer console. You can see API requests under the networking tab, and logs in the console.
+- In your userscript manager menu, there should be menu items for the script to turn on different levels of logging. Turn on Debug or Trace logging.
