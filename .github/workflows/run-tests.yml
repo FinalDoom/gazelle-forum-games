@@ -11,13 +11,11 @@ on:
   #   - cron: '0 6 * * 0'
 
 jobs:
-  build:
-    name: Run build
+  build-and-test:
+    name: Run build then tests
+    runs-on: ubuntu-latest
     uses: ./.github/workflows/build.yml
 
-  test:
-    name: Execute tests
-    runs-on: ubuntu-latest
     steps:
       - name: Run tests
         run: pnpm run test
