@@ -1,5 +1,5 @@
 import Api from './api';
-import Log from './log';
+import log, {Logger} from './log';
 import Store from './store';
 
 /**
@@ -8,17 +8,18 @@ import Store from './store';
 export default class ForumThread {
   #api: Api;
   #isLastPage: boolean;
-  #log: Log;
+  #log: Logger;
   #store: Store;
   #threadId: number;
 
-  constructor(api: Api, log: Log, store: Store, threadId: number) {
+  constructor(api: Api, store: Store, threadId: number) {
     this.#api = api;
-    this.#log = log;
+    this.#log = log.getLogger('Forum Thread');
     this.#store = store;
     this.#threadId = threadId;
 
     this.#isLastPage = !!document.querySelector('.linkbox_top > strong:last-child');
+    this.#log.debug(`Forum thread detected (${this.#isLastPage ? '' : 'not '}last page)`);
   }
 
   /**
@@ -70,6 +71,7 @@ export default class ForumThread {
 
   #getRecentPostInfo() {
     if (this.#isLastPage) {
+      this.#log.debug('Getting user recent post info from last page');
       const userId = document.querySelector<HTMLAnchorElement>('#nav_userinfo a').href.match(/id=(\d+)/)![1];
       let lastPostByUser: HTMLTableElement | undefined;
       for (const el of document.querySelectorAll<HTMLAnchorElement>(`.forum_post a.username[href$='id=${userId}']`)) {
@@ -78,6 +80,7 @@ export default class ForumThread {
           lastPostByUser = el.closest('table');
         }
       }
+      this.#log.debug(`Post by user ${lastPostByUser ? '' : 'not '} found on page.`);
       const firstPostOnPage = document.querySelector<HTMLTableElement>('.forum_post');
       const post = lastPostByUser ? lastPostByUser : firstPostOnPage;
       const otherPosts = [];
@@ -114,6 +117,7 @@ export default class ForumThread {
   async changeMonitoring(monitoringOn) {
     if (this.isMonitored === monitoringOn) return true;
     if (monitoringOn) {
+      this.#log.debug('Set monitoring on for thread ', this.#threadId);
       unsafeWindow.noty({type: 'success', text: 'Monitoring forum game for post readiness.'});
       const threadInfo = await this.#api.threadInfo(this.#threadId);
       if (threadInfo) {
@@ -121,6 +125,7 @@ export default class ForumThread {
       }
     } else {
       if (window.confirm('You are about to remove monitoring for this forum game. Press OK to confirm.')) {
+        this.#log.debug('Turned monitoring off for thread ', this.#threadId);
         this.#store.removeMonitoring(this.#threadId);
       } else {
         return false;
@@ -131,6 +136,7 @@ export default class ForumThread {
 
   async init() {
     // Add link / checkbox to monitor thread
+    this.#log.debug('Adding monitoring link to thread');
     const monitorLink = document.createElement('a');
     monitorLink.innerText = this.isMonitored ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
     monitorLink.addEventListener('click', async () => {
@@ -140,6 +146,7 @@ export default class ForumThread {
     document.querySelector('#subscribe-link').after(monitorLink);
 
     // Checkbox and label next to subscribe checkbox to change monitoring on post submission
+    this.#log.debug('Adding monitoring checkbox to thread');
     const monitorCheckbox = document.createElement('input');
     monitorCheckbox.type = 'checkbox';
     monitorCheckbox.id = 'monitoring';
@@ -147,30 +154,35 @@ export default class ForumThread {
 
     const monitorLabel = document.createElement('label');
     monitorLabel.append(monitorCheckbox, 'Monitor game');
-    document.querySelector('#subbox').nextElementSibling.after(monitorLabel);
+    if (document.querySelector('#subbox')) {
+      document.querySelector('#subbox').nextElementSibling.after(monitorLabel);
 
-    document.querySelector<HTMLFormElement>('#quickpostform').addEventListener('submit', async () => {
-      return await this.changeMonitoring(monitorCheckbox.checked);
-    });
+      document.querySelector<HTMLFormElement>('#quickpostform').addEventListener('submit', async () => {
+        this.#log.debug('Reply submitted, checking monitoring checkbox');
+        return await this.changeMonitoring(monitorCheckbox.checked);
+      });
 
-    // Update state if monitored
-    if (this.isMonitored && this.#isLastPage) {
-      const state = this.state;
-      if (state) {
-        const {canPost: previousCanPost} = state;
-        this.#log.debug('Updating states from', state);
-        const {lastPostTime, otherPostIds} = this.#getRecentPostInfo();
-        if (!isNaN(lastPostTime)) {
-          const nextPostTime = new Date(lastPostTime + state.postTimeLimit * 3600000);
-          state.nextPostTime = nextPostTime;
-          state.canPost = otherPostIds.length >= state.postCountLimit || nextPostTime < new Date();
-        } else {
-          state.canPost = otherPostIds.length >= state.postCountLimit;
+      // Update state if monitored
+      if (this.isMonitored && this.#isLastPage) {
+        const state = this.state;
+        if (state) {
+          const {canPost: previousCanPost} = state;
+          this.#log.debug('Updating thread states from', state);
+          const {lastPostTime, otherPostIds} = this.#getRecentPostInfo();
+          if (!isNaN(lastPostTime)) {
+            const nextPostTime = new Date(lastPostTime + state.postTimeLimit * 3600000);
+            state.nextPostTime = nextPostTime;
+            state.canPost = otherPostIds.length >= state.postCountLimit || nextPostTime < new Date();
+          } else {
+            state.canPost = otherPostIds.length >= state.postCountLimit;
+          }
+          this.#log.debug('New state', state);
+          if (previousCanPost != state.canPost) this.#store.setGameState(this.#threadId, state);
         }
-        this.#log.debug('New state', state);
-        if (previousCanPost != state.canPost) this.#store.setGameState(this.#threadId, state);
       }
+      this.#log.log('Current thread state:', this.state);
+    } else {
+      this.#log.info('Current thread is locked.');
     }
-    this.#log.log('Current thread state:', () => this.state);
   }
 }
