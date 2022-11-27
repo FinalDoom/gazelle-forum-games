@@ -1,5 +1,5 @@
 import Api from './api';
-import Log from './log';
+import log, {Logger} from './log';
 import GameState from './models/game-state';
 import Store, {KEY_GAME_STATE_PREFIX} from './store';
 import Style from './styles/style';
@@ -15,13 +15,13 @@ const isFulfilled = <T>(input: PromiseSettledResult<T>): input is PromiseFulfill
  */
 export default class Forum {
   #api: Api;
-  #log: Log;
+  #log: Logger;
   #store: Store;
   #style: Style;
 
-  constructor(api: Api, log: Log, store: Store, style: Style) {
+  constructor(api: Api, store: Store, style: Style) {
     this.#api = api;
-    this.#log = log;
+    this.#log = log.getLogger('Forum');
     this.#store = store;
     this.#style = style;
 

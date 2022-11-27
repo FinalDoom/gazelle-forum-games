@@ -1,5 +1,5 @@
 import {RateLimiter} from 'limiter';
-import Log from './log';
+import log, {Logger} from './log';
 import GameState from './models/game-state';
 
 const API_THROTTLE_WINDOW_MILLLIS = 10000;
@@ -60,11 +60,11 @@ export default interface Api {
 export class GazelleApi implements Api {
   #key: string;
   #limiter: RateLimiter;
-  #log: Log;
+  #log: Logger;
 
-  constructor(log: Log, apiKey: string) {
+  constructor(apiKey: string) {
     this.#key = apiKey;
-    this.#log = log;
+    this.#log = log.getLogger('API');
 
     this.#limiter = new RateLimiter({
       tokensPerInterval: MAX_QUERIES_PER_WINDOW,

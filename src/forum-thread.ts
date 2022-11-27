@@ -1,5 +1,5 @@
 import Api from './api';
-import Log from './log';
+import log, {Logger} from './log';
 import Store from './store';
 
 /**
@@ -8,13 +8,13 @@ import Store from './store';
 export default class ForumThread {
   #api: Api;
   #isLastPage: boolean;
-  #log: Log;
+  #log: Logger;
   #store: Store;
   #threadId: number;
 
-  constructor(api: Api, log: Log, store: Store, threadId: number) {
+  constructor(api: Api, store: Store, threadId: number) {
     this.#api = api;
-    this.#log = log;
+    this.#log = log.getLogger('Forum Thread');
     this.#store = store;
     this.#threadId = threadId;
 
