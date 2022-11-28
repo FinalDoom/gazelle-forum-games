@@ -55,7 +55,7 @@
     "loglevel-plugin-prefix": "^0.8.4",
     "mocha": "^10.0.0",
     "rollup": "^2.79.0",
-    "rollup-plugin-scss": "^3",
+    "rollup-plugin-scss": "^4",
     "rollup-plugin-userscript-metablock": "^0.3.1",
     "sass": "^1.56.1",
     "serve": "^14.0.1",
