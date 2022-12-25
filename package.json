@@ -1,6 +1,6 @@
 {
   "name": "gazelle-forum-games-eligibility-checker",
-  "version": "3.2.6",
+  "version": "3.2.7",
   "description": "Tracks forum games participation eligibility and marks thread read indicators accordingly.",
   "keywords": [
     "gazelle",
