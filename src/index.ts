@@ -17,12 +17,12 @@ declare global {
 
 (async function () {
   const log = Logger.getLogger('index');
-  buildMenu();
 
   log.debug('Loading stored settings');
   const STORE = new ForumGameStore();
   await STORE.init();
   log.debug('Settings loaded');
+  buildMenu(STORE);
 
   function askForApiKey() {
     log.debug('Querying for API key');
@@ -46,7 +46,7 @@ Please disable this userscript until you have one as this prompt will continue t
   const API = new GazelleApi(STORE.apiKey || askForApiKey());
 
   if (ForumThread.isForumGame) {
-    new ForumThread(API, STORE, Number(new URLSearchParams(window.location.search).get('threadid'))).init();
+    new ForumThread(STORE, Number(new URLSearchParams(window.location.search).get('threadid'))).init();
   } else {
     const STYLE = StyleFactory.build();
     new Forum(API, STORE, STYLE);

@@ -18,4 +18,8 @@ class GameRoomStyle extends BaseStyle {
   modifyIcon(icon: HTMLElement, canPost: boolean): void {
     icon.title = `You are ${canPost ? 'eligible' : 'ineligible'} to participate in this forum game.`;
   }
+
+  unmodifyIcon(icon: HTMLElement): void {
+    icon.title = '';
+  }
 }

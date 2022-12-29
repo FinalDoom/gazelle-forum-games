@@ -15,12 +15,24 @@ export default interface Style {
    */
   modifyIcon(icon: HTMLElement, canPost: boolean): void;
   /**
+   * Method that can be overridden to undo additional styling added to the created indicator icon.
+   *
+   * @param icon element that eligibility styling is being removed from
+   */
+  unmodifyIcon(icon: HTMLElement): void;
+  /**
    * Method that handles assigning participation state to individual rows.
    *
    * @param threadId site ID for the thread to be styled. Used in matches to find the correct row.
    * @param canPost true if user is eligible to post in this thread, false otherwise.
    */
   setPostState(threadId: number, canPost: boolean): void;
+  /**
+   * Method that handles removing participation state from individual game rows.
+   *
+   * @param threadId site ID for the thread to be styled. Used in matches to find the correct row.
+   */
+  unsetPostState(threadId: number): void;
   /**
    * Method that handles styling individual rows to indicate game participation eligibility.
    *
@@ -63,21 +75,41 @@ export const StyleFactory = {
  * Base style that can be overridden for specific stylesheet logic. Has the default implementation of all methods.
  */
 export class BaseStyle implements Style {
-  #rowClassName;
+  #rowClassName: string;
 
   /**
    * Instantiation of Style that can be called to style forum index page.
    *
    * @param rowClassName base class identifier used in matching .scss file. Must be unique on the site and other style types. Suggested format follows BEM, such as 'forum-games-checker-STYLE_NAME__row'
    */
-  constructor(rowClassName) {
+  constructor(rowClassName: string) {
     this.#rowClassName = rowClassName;
+  }
+
+  unsetPostState(threadId: number): void {
+    const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
+      ?.previousElementSibling as HTMLElement;
+
+    this.unmodifyIcon(icon);
+
+    const row = icon.closest('tr');
+    row.classList.remove(
+      this.#rowClassName,
+      this.#rowClassName + '--' + 'unread-eligible',
+      this.#rowClassName + '--' + 'unread-ineligible',
+      this.#rowClassName + '--' + 'read-eligible',
+      this.#rowClassName + '--' + 'read-ineligible',
+    );
   }
 
   modifyIcon(icon: HTMLElement, canPost: boolean) {
     icon.nextElementSibling.querySelector<HTMLSpanElement>('.last_topic').title = `You are ${
       canPost ? 'eligible' : 'ineligible'
     } to participate in this forum game.`;
+  }
+
+  unmodifyIcon(icon: HTMLElement): void {
+    icon.nextElementSibling.querySelector<HTMLSpanElement>('.last_topic').title = '';
   }
 
   setPostState(threadId: number, canPost: boolean): void {
