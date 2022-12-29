@@ -67,19 +67,19 @@ export default class ForumThread {
   }
 
   async init() {
-    if (!document.querySelector('#subbox')) {
-      this.#log.info('Current thread is locked.');
-    } else {
-      // Add link / checkbox to monitor thread
-      this.#log.debug('Adding monitoring link to thread');
-      const monitorLink = document.createElement('a');
+    // Add link / checkbox to monitor thread
+    this.#log.debug('Adding monitoring link to thread');
+    const monitorLink = document.createElement('a');
+    monitorLink.innerText = (await this.#isMonitored()) ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
+    monitorLink.addEventListener('click', async () => {
+      await this.changeMonitoring(!(await this.#isMonitored()));
       monitorLink.innerText = (await this.#isMonitored()) ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
-      monitorLink.addEventListener('click', async () => {
-        await this.changeMonitoring(!(await this.#isMonitored()));
-        monitorLink.innerText = (await this.#isMonitored()) ? '[ Unmonitor this game ]' : '[ Monitor this game ]';
-      });
-      document.querySelector('#subscribe-link').after(monitorLink);
+    });
+    document.querySelector('#subscribe-link').after(monitorLink);
 
+    if (!document.querySelector('#subbox')) {
+      this.#log.info('You cannot post to the current thread.');
+    } else {
       // Checkbox and label next to subscribe checkbox to change monitoring on post submission
       this.#log.debug('Adding monitoring checkbox to thread');
       const monitorCheckbox = document.createElement('input');
