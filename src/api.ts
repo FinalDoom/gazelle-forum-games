@@ -2,8 +2,8 @@ import {RateLimiter} from 'limiter';
 import log, {Logger} from './log';
 import GameState from './models/game-state';
 
-const API_THROTTLE_WINDOW_MILLLIS = 10000;
-const MAX_QUERIES_PER_WINDOW = 5;
+export const API_THROTTLE_WINDOW_MILLLIS = 10000;
+export const API_MAX_QUERIES_PER_WINDOW = 5;
 const BACKOFF_TIME_MILLIS = 2000;
 
 /**
@@ -67,12 +67,12 @@ export class GazelleApi implements Api {
     this.#log = log.getLogger('API');
 
     this.#limiter = new RateLimiter({
-      tokensPerInterval: MAX_QUERIES_PER_WINDOW,
+      tokensPerInterval: API_MAX_QUERIES_PER_WINDOW,
       interval: API_THROTTLE_WINDOW_MILLLIS,
     });
     this.#log.debug(
       'Built API with throttle %d queries per %d milliseconds.',
-      MAX_QUERIES_PER_WINDOW,
+      API_MAX_QUERIES_PER_WINDOW,
       API_THROTTLE_WINDOW_MILLLIS,
     );
   }

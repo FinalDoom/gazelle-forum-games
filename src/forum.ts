@@ -1,4 +1,4 @@
-import Api from './api';
+import Api, {API_MAX_QUERIES_PER_WINDOW, API_THROTTLE_WINDOW_MILLLIS} from './api';
 import {Message, messageListener} from './ipc';
 import log, {Logger} from './log';
 import Store from './store';
@@ -21,7 +21,7 @@ export default class Forum {
     this.#style = style;
 
     this.#listenForMorePages();
-    this.#updateThreads();
+    this.#updateThreads(true);
 
     messageListener(this.#messageListenerCallback.bind(this));
 
@@ -88,22 +88,24 @@ export default class Forum {
    *
    * @param threadId ID of the thread to update
    */
-  #updateThread(threadId: number) {
+  async #updateThread(threadId: number) {
     // this.#log.debug('Updating thread state', threadId);
-    this.#api
-      .threadInfo(threadId)
-      .then((state) => {
-        this.#log.debug('Got new thread state', threadId, state);
-        this.#store.setGameState(threadId, state.canPost);
-        this.#style.setPostState(threadId, state.canPost);
-      })
-      .catch((reason) => this.#log.error('Failed updating a thread: ', reason));
+    try {
+      const state = await this.#api.threadInfo(threadId);
+      this.#log.debug('Got new thread state', threadId, state);
+      this.#store.setGameState(threadId, state.canPost);
+      this.#style.setPostState(threadId, state.canPost);
+      return true;
+    } catch (reason) {
+      this.#log.error('Failed updating a thread: ', reason);
+      return false;
+    }
   }
 
   /**
    * Updates state and eligibility of all visible threads (that are monitored)
    */
-  async #updateThreads() {
+  async #updateThreads(first = false) {
     this.#log.debug('Updating thread states');
     const monitoredThreads = (
       await Promise.all(
@@ -112,7 +114,25 @@ export default class Forum {
         ),
       )
     ).filter((id) => id !== undefined);
-    await Promise.allSettled(monitoredThreads.map((threadId) => this.#updateThread(threadId)));
+    await Promise.allSettled(
+      monitoredThreads.map((threadId, i) => {
+        return new Promise((resolve) =>
+          window.setTimeout(
+            async () => {
+              const success = await this.#updateThread(threadId);
+              resolve(success);
+            },
+            first
+              ? // Fire them all off at once for the first update
+                0
+              : // Fire off N-2 per api window for subsequent updates,
+                // so that other requests can still go through while updates
+                // are happening.
+                Math.floor(i / (API_MAX_QUERIES_PER_WINDOW - 2)) * API_THROTTLE_WINDOW_MILLLIS,
+          ),
+        );
+      }),
+    );
     this.#log.debug('Waiting 60 seconds to recheck thread states');
     this.#cooldown = window.setTimeout(this.#updateThreads.bind(this), 60000);
   }
