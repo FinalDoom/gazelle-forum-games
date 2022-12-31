@@ -93,8 +93,11 @@ export default class Forum {
     try {
       const state = await this.#api.threadInfo(threadId);
       this.#log.debug('Got new thread state', threadId, state);
-      this.#store.setGameState(threadId, state.canPost);
-      this.#style.setPostState(threadId, state.canPost);
+      // Precheck state so we don't re-monitor an unmonitored thread
+      if (this.#store.isGameMonitored(threadId)) {
+        this.#store.setGameState(threadId, state.canPost);
+        this.#style.setPostState(threadId, state.canPost);
+      }
       return true;
     } catch (reason) {
       this.#log.error('Failed updating a thread: ', reason);

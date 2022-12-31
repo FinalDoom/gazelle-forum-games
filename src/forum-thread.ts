@@ -38,7 +38,7 @@ export default class ForumThread {
   }
 
   async #isMonitored() {
-    return (await this.#store.getGameState(this.#threadId)) !== undefined;
+    return await this.#store.isGameMonitored(this.#threadId);
   }
 
   /**

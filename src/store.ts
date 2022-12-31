@@ -32,6 +32,11 @@ export default interface Store extends Storable {
    */
   setGameState: (threadId: number, state: GameState) => Promise<void>;
   /**
+   * @param threadId thread id to check state for
+   * @returns true if the game is monitored by this script, false otherwise
+   */
+  isGameMonitored: (threadId: number) => Promise<boolean>;
+  /**
    * Removes stored state and unmonitores thread by id.
    *
    * @param threadId thread id to remove monitoring for
@@ -93,6 +98,9 @@ export class ForumGameStore implements Store {
   }
   async setGameState(threadId: number, state: GameState): Promise<void> {
     this.#setGM(threadId, state);
+  }
+  async isGameMonitored(threadId: number) {
+    return (await this.getGameState(threadId)) !== undefined;
   }
   async removeMonitoring(threadId: number) {
     await GM.deleteValue(String(threadId));
