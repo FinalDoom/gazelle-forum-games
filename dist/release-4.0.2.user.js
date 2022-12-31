@@ -5,7 +5,7 @@
 // @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @match       https://gazellegames.net/forums.php?*action=viewforum&forumid=55*
 // @match       https://gazellegames.net/forums.php?*action=viewthread&threadid=*
-// @version     4.0.5
+// @version     4.0.2
 // @homepage    https://github.com/FinalDoom/gazelle-forum-games
 // @author      FinalDoom
 // @license     ISC
@@ -833,7 +833,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
     var _GazelleApi_instances, _GazelleApi_key, _GazelleApi_limiter, _GazelleApi_log, _GazelleApi_sleep, _GazelleApi_fetchAndRetryIfNecessary, _GazelleApi_acquireToken;
     const API_THROTTLE_WINDOW_MILLLIS = 10000;
-    const API_MAX_QUERIES_PER_WINDOW = 5;
+    const MAX_QUERIES_PER_WINDOW = 5;
     const BACKOFF_TIME_MILLIS = 2000;
     class GazelleApi {
         constructor(apiKey) {
@@ -844,10 +844,10 @@ PERFORMANCE OF THIS SOFTWARE.
             __classPrivateFieldSet(this, _GazelleApi_key, apiKey, "f");
             __classPrivateFieldSet(this, _GazelleApi_log, log.getLogger('API'), "f");
             __classPrivateFieldSet(this, _GazelleApi_limiter, new RateLimiter({
-                tokensPerInterval: API_MAX_QUERIES_PER_WINDOW,
+                tokensPerInterval: MAX_QUERIES_PER_WINDOW,
                 interval: API_THROTTLE_WINDOW_MILLLIS,
             }), "f");
-            __classPrivateFieldGet(this, _GazelleApi_log, "f").debug('Built API with throttle %d queries per %d milliseconds.', API_MAX_QUERIES_PER_WINDOW, API_THROTTLE_WINDOW_MILLLIS);
+            __classPrivateFieldGet(this, _GazelleApi_log, "f").debug('Built API with throttle %d queries per %d milliseconds.', MAX_QUERIES_PER_WINDOW, API_THROTTLE_WINDOW_MILLLIS);
         }
         async call(data) {
             __classPrivateFieldGet(this, _GazelleApi_log, "f").debug('Call attempt', data);
@@ -945,7 +945,7 @@ PERFORMANCE OF THIS SOFTWARE.
             __classPrivateFieldSet(this, _Forum_store, store, "f");
             __classPrivateFieldSet(this, _Forum_style, style, "f");
             __classPrivateFieldGet(this, _Forum_instances, "m", _Forum_listenForMorePages).call(this);
-            __classPrivateFieldGet(this, _Forum_instances, "m", _Forum_updateThreads).call(this, true);
+            __classPrivateFieldGet(this, _Forum_instances, "m", _Forum_updateThreads).call(this);
             messageListener(__classPrivateFieldGet(this, _Forum_instances, "m", _Forum_messageListenerCallback).bind(this));
             // Show cached state
             if (__classPrivateFieldGet(this, _Forum_store, "f").showCached) {
@@ -990,47 +990,24 @@ PERFORMANCE OF THIS SOFTWARE.
         }
     }, _Forum_visibleThreads = function _Forum_visibleThreads() {
         return Array.from(document.querySelectorAll(`strong a[href*='threadid=']`)).map((a) => Number(new URLSearchParams(a.href).get('threadid')));
-    }, _Forum_updateThread = 
-    /**
-     * Update a single thread's eligibility state and display
-     *
-     * @param threadId ID of the thread to update
-     */
-    async function _Forum_updateThread(threadId) {
+    }, _Forum_updateThread = function _Forum_updateThread(threadId) {
         // this.#log.debug('Updating thread state', threadId);
-        try {
-            const state = await __classPrivateFieldGet(this, _Forum_api, "f").threadInfo(threadId);
+        __classPrivateFieldGet(this, _Forum_api, "f")
+            .threadInfo(threadId)
+            .then((state) => {
             __classPrivateFieldGet(this, _Forum_log, "f").debug('Got new thread state', threadId, state);
-            // Precheck state so we don't re-monitor an unmonitored thread
-            if (__classPrivateFieldGet(this, _Forum_store, "f").isGameMonitored(threadId)) {
-                __classPrivateFieldGet(this, _Forum_store, "f").setGameState(threadId, state.canPost);
-                __classPrivateFieldGet(this, _Forum_style, "f").setPostState(threadId, state.canPost);
-            }
-            return true;
-        }
-        catch (reason) {
-            __classPrivateFieldGet(this, _Forum_log, "f").error('Failed updating a thread: ', reason);
-            return false;
-        }
+            __classPrivateFieldGet(this, _Forum_store, "f").setGameState(threadId, state.canPost);
+            __classPrivateFieldGet(this, _Forum_style, "f").setPostState(threadId, state.canPost);
+        })
+            .catch((reason) => __classPrivateFieldGet(this, _Forum_log, "f").error('Failed updating a thread: ', reason));
     }, _Forum_updateThreads = 
     /**
      * Updates state and eligibility of all visible threads (that are monitored)
      */
-    async function _Forum_updateThreads(first = false) {
+    async function _Forum_updateThreads() {
         __classPrivateFieldGet(this, _Forum_log, "f").debug('Updating thread states');
         const monitoredThreads = (await Promise.all(__classPrivateFieldGet(this, _Forum_instances, "m", _Forum_visibleThreads).call(this).map(async (threadId) => (await __classPrivateFieldGet(this, _Forum_store, "f").getGameState(threadId)) === undefined ? undefined : threadId))).filter((id) => id !== undefined);
-        await Promise.allSettled(monitoredThreads.map((threadId, i) => {
-            return new Promise((resolve) => window.setTimeout(async () => {
-                const success = await __classPrivateFieldGet(this, _Forum_instances, "m", _Forum_updateThread).call(this, threadId);
-                resolve(success);
-            }, first
-                ? // Fire them all off at once for the first update
-                    0
-                : // Fire off N-2 per api window for subsequent updates,
-                    // so that other requests can still go through while updates
-                    // are happening.
-                    Math.floor(i / (API_MAX_QUERIES_PER_WINDOW - 2)) * API_THROTTLE_WINDOW_MILLLIS));
-        }));
+        await Promise.allSettled(monitoredThreads.map((threadId) => __classPrivateFieldGet(this, _Forum_instances, "m", _Forum_updateThread).call(this, threadId)));
         __classPrivateFieldGet(this, _Forum_log, "f").debug('Waiting 60 seconds to recheck thread states');
         __classPrivateFieldSet(this, _Forum_cooldown, window.setTimeout(__classPrivateFieldGet(this, _Forum_instances, "m", _Forum_updateThreads).bind(this), 60000), "f");
     };
@@ -1130,7 +1107,7 @@ PERFORMANCE OF THIS SOFTWARE.
         }
     }
     _ForumThread_log = new WeakMap(), _ForumThread_store = new WeakMap(), _ForumThread_threadId = new WeakMap(), _ForumThread_instances = new WeakSet(), _ForumThread_isMonitored = async function _ForumThread_isMonitored() {
-        return await __classPrivateFieldGet(this, _ForumThread_store, "f").isGameMonitored(__classPrivateFieldGet(this, _ForumThread_threadId, "f"));
+        return (await __classPrivateFieldGet(this, _ForumThread_store, "f").getGameState(__classPrivateFieldGet(this, _ForumThread_threadId, "f"))) !== undefined;
     };
 
     /**
@@ -1182,9 +1159,6 @@ PERFORMANCE OF THIS SOFTWARE.
         }
         async setGameState(threadId, state) {
             __classPrivateFieldGet(this, _ForumGameStore_instances, "m", _ForumGameStore_setGM).call(this, threadId, state);
-        }
-        async isGameMonitored(threadId) {
-            return (await this.getGameState(threadId)) !== undefined;
         }
         async removeMonitoring(threadId) {
             await GM.deleteValue(String(threadId));
@@ -1248,6 +1222,13 @@ PERFORMANCE OF THIS SOFTWARE.
             _BaseStyle_rowClassName.set(this, void 0);
             __classPrivateFieldSet(this, _BaseStyle_rowClassName, rowClassName, "f");
         }
+        unsetPostState(threadId) {
+            const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
+                ?.previousElementSibling;
+            this.unmodifyIcon(icon);
+            const row = icon.closest('tr');
+            row.classList.remove(__classPrivateFieldGet(this, _BaseStyle_rowClassName, "f"), __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'unread-eligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'unread-ineligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'read-eligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'read-ineligible');
+        }
         modifyIcon(icon, canPost) {
             icon.nextElementSibling.querySelector('.last_topic').title = `You are ${canPost ? 'eligible' : 'ineligible'} to participate in this forum game.`;
         }
@@ -1255,8 +1236,6 @@ PERFORMANCE OF THIS SOFTWARE.
             icon.nextElementSibling.querySelector('.last_topic').title = '';
         }
         setPostState(threadId, canPost) {
-            // Reset before applying new state
-            this.unsetPostState(threadId);
             const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
                 ?.previousElementSibling;
             if (!icon ||
@@ -1285,13 +1264,6 @@ PERFORMANCE OF THIS SOFTWARE.
                 else
                     this.styleRow(row, 'read-ineligible');
             }
-        }
-        unsetPostState(threadId) {
-            const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
-                ?.previousElementSibling;
-            this.unmodifyIcon(icon);
-            const row = icon.closest('tr');
-            row.classList.remove(__classPrivateFieldGet(this, _BaseStyle_rowClassName, "f"), __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'unread-eligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'unread-ineligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'read-eligible', __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + 'read-ineligible');
         }
         styleRow(row, stateName) {
             row.classList.add(__classPrivateFieldGet(this, _BaseStyle_rowClassName, "f"), __classPrivateFieldGet(this, _BaseStyle_rowClassName, "f") + '--' + stateName);

@@ -38,7 +38,7 @@ export default class ForumThread {
   }
 
   async #isMonitored() {
-    return (await this.#store.getGameState(this.#threadId)) !== undefined;
+    return await this.#store.isGameMonitored(this.#threadId);
   }
 
   /**
@@ -77,6 +77,12 @@ export default class ForumThread {
     });
     document.querySelector('#subscribe-link').after(monitorLink);
 
+    // Trigger state update if monitored
+    this.#log.debug('Trigger update?', await this.#isMonitored());
+    if (await this.#isMonitored()) {
+      triggerUpdate(this.#threadId);
+    }
+
     if (!document.querySelector('#subbox')) {
       this.#log.info('You cannot post to the current thread.');
     } else {
@@ -95,12 +101,6 @@ export default class ForumThread {
         this.#log.debug('Reply submitted, checking monitoring checkbox');
         return await this.changeMonitoring(monitorCheckbox.checked);
       });
-
-      // Trigger state update if monitored
-      this.#log.debug('Trigger update?', await this.#isMonitored());
-      if (await this.#isMonitored()) {
-        triggerUpdate(this.#threadId);
-      }
     }
   }
 }

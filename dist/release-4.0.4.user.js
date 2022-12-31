@@ -5,7 +5,7 @@
 // @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @match       https://gazellegames.net/forums.php?*action=viewforum&forumid=55*
 // @match       https://gazellegames.net/forums.php?*action=viewthread&threadid=*
-// @version     4.0.5
+// @version     4.0.4
 // @homepage    https://github.com/FinalDoom/gazelle-forum-games
 // @author      FinalDoom
 // @license     ISC
@@ -1001,11 +1001,8 @@ PERFORMANCE OF THIS SOFTWARE.
         try {
             const state = await __classPrivateFieldGet(this, _Forum_api, "f").threadInfo(threadId);
             __classPrivateFieldGet(this, _Forum_log, "f").debug('Got new thread state', threadId, state);
-            // Precheck state so we don't re-monitor an unmonitored thread
-            if (__classPrivateFieldGet(this, _Forum_store, "f").isGameMonitored(threadId)) {
-                __classPrivateFieldGet(this, _Forum_store, "f").setGameState(threadId, state.canPost);
-                __classPrivateFieldGet(this, _Forum_style, "f").setPostState(threadId, state.canPost);
-            }
+            __classPrivateFieldGet(this, _Forum_store, "f").setGameState(threadId, state.canPost);
+            __classPrivateFieldGet(this, _Forum_style, "f").setPostState(threadId, state.canPost);
             return true;
         }
         catch (reason) {
@@ -1130,7 +1127,7 @@ PERFORMANCE OF THIS SOFTWARE.
         }
     }
     _ForumThread_log = new WeakMap(), _ForumThread_store = new WeakMap(), _ForumThread_threadId = new WeakMap(), _ForumThread_instances = new WeakSet(), _ForumThread_isMonitored = async function _ForumThread_isMonitored() {
-        return await __classPrivateFieldGet(this, _ForumThread_store, "f").isGameMonitored(__classPrivateFieldGet(this, _ForumThread_threadId, "f"));
+        return (await __classPrivateFieldGet(this, _ForumThread_store, "f").getGameState(__classPrivateFieldGet(this, _ForumThread_threadId, "f"))) !== undefined;
     };
 
     /**
@@ -1182,9 +1179,6 @@ PERFORMANCE OF THIS SOFTWARE.
         }
         async setGameState(threadId, state) {
             __classPrivateFieldGet(this, _ForumGameStore_instances, "m", _ForumGameStore_setGM).call(this, threadId, state);
-        }
-        async isGameMonitored(threadId) {
-            return (await this.getGameState(threadId)) !== undefined;
         }
         async removeMonitoring(threadId) {
             await GM.deleteValue(String(threadId));
