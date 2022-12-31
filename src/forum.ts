@@ -92,9 +92,9 @@ export default class Forum {
     // this.#log.debug('Updating thread state', threadId);
     try {
       const state = await this.#api.threadInfo(threadId);
-      this.#log.debug('Got new thread state', threadId, state);
       // Precheck state so we don't re-monitor an unmonitored thread
       if (this.#store.isGameMonitored(threadId)) {
+        this.#log.debug('Got new thread state', threadId, state);
         this.#store.setGameState(threadId, state.canPost);
         this.#style.setPostState(threadId, state.canPost);
       }
