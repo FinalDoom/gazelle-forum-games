@@ -86,22 +86,6 @@ export class BaseStyle implements Style {
     this.#rowClassName = rowClassName;
   }
 
-  unsetPostState(threadId: number): void {
-    const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
-      ?.previousElementSibling as HTMLElement;
-
-    this.unmodifyIcon(icon);
-
-    const row = icon.closest('tr');
-    row.classList.remove(
-      this.#rowClassName,
-      this.#rowClassName + '--' + 'unread-eligible',
-      this.#rowClassName + '--' + 'unread-ineligible',
-      this.#rowClassName + '--' + 'read-eligible',
-      this.#rowClassName + '--' + 'read-ineligible',
-    );
-  }
-
   modifyIcon(icon: HTMLElement, canPost: boolean) {
     icon.nextElementSibling.querySelector<HTMLSpanElement>('.last_topic').title = `You are ${
       canPost ? 'eligible' : 'ineligible'
@@ -113,6 +97,9 @@ export class BaseStyle implements Style {
   }
 
   setPostState(threadId: number, canPost: boolean): void {
+    // Reset before applying new state
+    this.unsetPostState(threadId);
+
     const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
       ?.previousElementSibling as HTMLElement;
 
@@ -141,6 +128,22 @@ export class BaseStyle implements Style {
       if (canPost) this.styleRow(row, 'read-eligible');
       else this.styleRow(row, 'read-ineligible');
     }
+  }
+
+  unsetPostState(threadId: number): void {
+    const icon = document.querySelector(`a[href$='threadid=${threadId}']`)?.closest('td')
+      ?.previousElementSibling as HTMLElement;
+
+    this.unmodifyIcon(icon);
+
+    const row = icon.closest('tr');
+    row.classList.remove(
+      this.#rowClassName,
+      this.#rowClassName + '--' + 'unread-eligible',
+      this.#rowClassName + '--' + 'unread-ineligible',
+      this.#rowClassName + '--' + 'read-eligible',
+      this.#rowClassName + '--' + 'read-ineligible',
+    );
   }
 
   styleRow(row: HTMLTableRowElement, stateName: RowState) {
