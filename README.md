@@ -2,7 +2,7 @@
 
 This is a Greasemonkey (Tampermonkey/Violentmonkey/Firemonkey) userscript for tracking and displaying whether you are able to participate in a forum game on GGn.
 
-Install URL: https://github.com/FinalDoom/gazelle-forum-games/releases/download/v4.0.6/gazelle-forum-games-eligibility-checker.user.js
+Install URL: https://github.com/FinalDoom/gazelle-forum-games/releases/latest/download/gazelle-forum-games-eligibility-checker.user.js
 
 # Requirements
 
