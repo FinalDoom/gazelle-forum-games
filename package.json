@@ -55,7 +55,7 @@
     "rollup": "^4.30.1",
     "rollup-plugin-scss": "^4",
     "rollup-plugin-userscript-metablock": "^0.4.2",
-    "sass": "^1.83.1",
+    "sass": "^1.83.4",
     "serve": "^14.2.4",
     "serve-handler": "^6.1.6",
     "test-console": "^2.0.0",
